@@ -207,6 +207,8 @@
                 <option value="NOVO DE VITRINE">NOVO DE VITRINE</option>
                 <option value="SEMI-NOVO">SEMI-NOVO</option>
                 <option value="OUTLET">OUTLET</option>
+                <option value="USO LOJA">USO LOJA</option>
+                <option value="RASTREIO">RASTREIO</option>
               </select>
             </div>
             <div><label for="avista">Valor à vista</label><input id="avista" type="text" placeholder="R$" /></div>
@@ -227,7 +229,7 @@
         <div class="historico-filtros">
           <div><label for="dataInicio">Data inicial</label><input id="dataInicio" type="date" /></div>
           <div><label for="dataFim">Data final</label><input id="dataFim" type="date" /></div>
-          <div><label for="tipoFiltro">Tipo</label><select id="tipoFiltro"><option value="Todos">Todos</option><option value="Cadastro">Cadastro</option><option value="Venda">Venda</option><option value="Transferência">Transferência</option><option value="Exclusão">Exclusão</option></select></div>
+          <div><label for="tipoFiltro">Tipo</label><select id="tipoFiltro"><option value="Todos">Todos</option><option value="Cadastro">Cadastro</option><option value="Venda">Venda</option><option value="Transferência">Transferência</option><option value="Exclusão">Exclusão</option><option value="Edição">Edição</option></select></div>
           <button class="btn-secondary" type="button" onclick="atualizarHistorico()">Filtrar</button>
           <button class="btn-copy" type="button" onclick="copiarRelatorio()">Copiar relatório</button>
           <button class="btn-danger" type="button" onclick="apagarHistoricoComSenha()">Apagar histórico</button>
@@ -267,6 +269,45 @@
 
       <div class="actions">
         <button class="btn-purple" type="button" onclick="salvarTransferenciaPainel()">Salvar transferência</button>
+        <button class="btn-danger" type="button" onclick="fecharPainelVenda()">Cancelar</button>
+      </div>
+    </div>
+
+    <div id="boxEditar" style="display:none;">
+      <h2>Editar produto</h2>
+      <input id="indiceEditar" type="hidden" />
+
+      <div class="campo"><label for="editarImei">IMEI</label><input id="editarImei" type="text" /></div>
+      <div class="campo"><label for="editarNome">Nome do aparelho</label><input id="editarNome" type="text" /></div>
+      <div class="campo">
+        <label for="editarCategoria">Categoria</label>
+        <select id="editarCategoria">
+          <option value="NOVO">NOVO</option>
+          <option value="NOVO DE VITRINE">NOVO DE VITRINE</option>
+          <option value="SEMI-NOVO">SEMI-NOVO</option>
+          <option value="OUTLET">OUTLET</option>
+          <option value="USO LOJA">USO LOJA</option>
+          <option value="RASTREIO">RASTREIO</option>
+        </select>
+      </div>
+      <div class="campo"><label for="editarArmazenamento">Armazenamento</label><input id="editarArmazenamento" type="text" /></div>
+      <div class="campo"><label for="editarRam">Memória RAM</label><input id="editarRam" type="text" /></div>
+      <div class="campo">
+        <label for="editarNfc">Possui NFC?</label>
+        <select id="editarNfc">
+          <option value=""></option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="campo"><label for="editarAvista">Valor à vista</label><input id="editarAvista" type="text" /></div>
+      <div class="campo"><label for="editarCinco">Valor em 5x</label><input id="editarCinco" type="text" /></div>
+      <div class="campo"><label for="editarDez">Valor em 10x</label><input id="editarDez" type="text" /></div>
+      <div class="campo"><label for="editarDezoito">Valor em 18x</label><input id="editarDezoito" type="text" /></div>
+      <div class="campo"><label for="editarObservacao">Observação</label><textarea id="editarObservacao"></textarea></div>
+
+      <div class="actions">
+        <button class="btn-primary" type="button" onclick="salvarEdicaoPainel()">Salvar edição</button>
         <button class="btn-danger" type="button" onclick="fecharPainelVenda()">Cancelar</button>
       </div>
     </div>
@@ -352,6 +393,18 @@
     }
 
     function atualizarTabela() {
+      const ordemCategorias = {
+        'NOVO': 1,
+        'NOVO DE VITRINE': 2,
+        'SEMI-NOVO': 3,
+        'OUTLET': 4,
+        'USO LOJA': 5,
+        'RASTREIO': 6
+      };
+
+      aparelhos.sort((a, b) => {
+        return (ordemCategorias[a.categoria] || 99) - (ordemCategorias[b.categoria] || 99);
+      });
       tabela.innerHTML = '';
       if (aparelhos.length === 0) {
         tabela.innerHTML = '<tr><td class="empty" colspan="12">Nenhum aparelho cadastrado.</td></tr>';
@@ -376,6 +429,7 @@
           <td class="coluna-acoes no-png">
             <div class="acao-botoes">
               <button class="btn-copy" type="button" onclick="copiarInformacoes(${index})">Copiar</button>
+              <button class="btn-secondary" type="button" onclick="editarProduto(${index})">Editar</button>
               <button class="btn-warning" type="button" onclick="marcarVendido(${index})">Vendido</button>
               <button class="btn-purple" type="button" onclick="marcarTransferido(${index})">Transferido</button>
               <button class="btn-danger" type="button" onclick="removerAparelho(${index})">Excluir</button>
@@ -408,6 +462,53 @@
       return texto;
     }
 
+    function editarProduto(index) {
+      const aparelho = aparelhos[index];
+      if (!aparelho) return;
+
+      document.getElementById('indiceEditar').value = index;
+      document.getElementById('editarImei').value = aparelho.imei || '';
+      document.getElementById('editarNome').value = aparelho.nome || '';
+      document.getElementById('editarCategoria').value = aparelho.categoria || 'NOVO';
+      document.getElementById('editarArmazenamento').value = aparelho.armazenamento || '';
+      document.getElementById('editarRam').value = aparelho.ram || '';
+      document.getElementById('editarNfc').value = aparelho.nfc || '';
+      document.getElementById('editarAvista').value = aparelho.avista || '';
+      document.getElementById('editarCinco').value = aparelho.cinco || '';
+      document.getElementById('editarDez').value = aparelho.dez || '';
+      document.getElementById('editarDezoito').value = aparelho.dezoito || '';
+      document.getElementById('editarObservacao').value = aparelho.observacao || '';
+
+      mostrarBoxEditar();
+      document.getElementById('overlayVenda').classList.add('active');
+      document.getElementById('painelVenda').classList.add('active');
+      document.getElementById('editarNome').focus();
+    }
+
+    function salvarEdicaoPainel() {
+      const index = Number(document.getElementById('indiceEditar').value);
+      const aparelho = aparelhos[index];
+      if (!aparelho) return;
+
+      aparelho.imei = document.getElementById('editarImei').value.trim();
+      aparelho.nome = document.getElementById('editarNome').value.trim();
+      aparelho.categoria = document.getElementById('editarCategoria').value;
+      aparelho.armazenamento = document.getElementById('editarArmazenamento').value.trim();
+      aparelho.ram = document.getElementById('editarRam').value.trim();
+      aparelho.nfc = document.getElementById('editarNfc').value;
+      aparelho.avista = document.getElementById('editarAvista').value.trim();
+      aparelho.cinco = document.getElementById('editarCinco').value.trim();
+      aparelho.dez = document.getElementById('editarDez').value.trim();
+      aparelho.dezoito = document.getElementById('editarDezoito').value.trim();
+      aparelho.observacao = document.getElementById('editarObservacao').value.trim();
+
+      registrarHistorico('Edição', aparelho, 'Produto editado pelo painel lateral');
+      salvarDados();
+      atualizarTela();
+      fecharPainelVenda();
+      alert('Produto editado e salvo com sucesso!');
+    }
+
     function copiarInformacoes(index) {
       navigator.clipboard.writeText(montarTextoCopiar(aparelhos[index])).then(() => alert('Informações copiadas!'));
     }
@@ -415,17 +516,31 @@
     function mostrarBoxVenda() {
       const boxVenda = document.getElementById('boxVenda');
       const boxTransferencia = document.getElementById('boxTransferencia');
+      const boxEditar = document.getElementById('boxEditar');
 
       if (boxVenda) boxVenda.style.display = 'block';
       if (boxTransferencia) boxTransferencia.style.display = 'none';
+      if (boxEditar) boxEditar.style.display = 'none';
     }
 
     function mostrarBoxTransferencia() {
       const boxVenda = document.getElementById('boxVenda');
       const boxTransferencia = document.getElementById('boxTransferencia');
+      const boxEditar = document.getElementById('boxEditar');
 
       if (boxVenda) boxVenda.style.display = 'none';
       if (boxTransferencia) boxTransferencia.style.display = 'block';
+      if (boxEditar) boxEditar.style.display = 'none';
+    }
+
+    function mostrarBoxEditar() {
+      const boxVenda = document.getElementById('boxVenda');
+      const boxTransferencia = document.getElementById('boxTransferencia');
+      const boxEditar = document.getElementById('boxEditar');
+
+      if (boxVenda) boxVenda.style.display = 'none';
+      if (boxTransferencia) boxTransferencia.style.display = 'none';
+      if (boxEditar) boxEditar.style.display = 'block';
     }
 
     function marcarVendido(index) {
@@ -447,9 +562,11 @@
     function fecharPainelVenda() {
       const boxVenda = document.getElementById('boxVenda');
       const boxTransferencia = document.getElementById('boxTransferencia');
+      const boxEditar = document.getElementById('boxEditar');
 
       if (boxVenda) boxVenda.style.display = 'none';
       if (boxTransferencia) boxTransferencia.style.display = 'none';
+      if (boxEditar) boxEditar.style.display = 'none';
       document.getElementById('overlayVenda').classList.remove('active');
       document.getElementById('painelVenda').classList.remove('active');
     }

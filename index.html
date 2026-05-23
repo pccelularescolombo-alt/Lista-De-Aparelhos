@@ -1392,8 +1392,9 @@
 
     /* =================== COPIAR INFOS =================== */
     function montarTextoCopiar(a) {
-      let texto = `*Aparelho*: ${a.nome || ''}\n` +
-                  `*Memória*: ${a.armazenamento || ''} / ${a.ram || ''} RAM\n` +
+      let texto = `*Categoria*: ${a.categoria || ''}\n` +
+                  `*Aparelho*: ${a.nome || ''}\n` +
+                  `*Memória*: ${a.armazenamento || ''} GB / ${a.ram || ''} RAM\n` +
                   `*À vista*: R$ ${a.avista || ''}\n` +
                   `*5x*: R$ ${a.cinco || ''}\n` +
                   `*10x*: R$ ${a.dez || ''}\n` +
@@ -1496,7 +1497,7 @@
 
       const dataCompra = new Date().toLocaleString('pt-BR');
       const loja = getNomeLoja() || 'Loja';
-      const produto = `${a.nome || ''} ${a.armazenamento || ''} / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
+      const produto = `${a.nome || ''} ${a.armazenamento || ''} GB / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
 
       const textoVenda = `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpfCnpj}\nTELEFONE: ${telefone}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${loja}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${pedidoBling}\nN° CCB: ${numeroCcb || '—'}`;
       const venda = { cliente, cpfCnpj, telefone, dataCompra, loja, produto, imei: a.imei || '', vendedor, pedidoBling, numeroCcb, textoVenda };
@@ -1545,7 +1546,7 @@
 
       const dataTransferencia = new Date().toLocaleString('pt-BR');
       const lojaOrigem = getNomeLoja() || 'Loja';
-      const produto = `${a.nome || ''} ${a.armazenamento || ''} / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
+      const produto = `${a.nome || ''} ${a.armazenamento || ''} GB / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
 
       const textoTransferencia = `LOJA ORIGEM: ${lojaOrigem}\nLOJA DESTINO: ${lojaTransferida}\nDATA: ${dataTransferencia}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nVENDEDOR: ${vendedor}\nENTREGADOR: ${entregador}`;
       const dados = { lojaOrigem, lojaTransferida, dataTransferencia, produto, imei: a.imei || '', vendedor, entregador, textoTransferencia };

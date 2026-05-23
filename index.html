@@ -583,13 +583,12 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.45);
       z-index: 50;
-      animation: fadeOverlay 0.2s ease;
+      opacity: 0;
+      transition: opacity 0.18s ease;
     }
-    .overlay.active { display: block; }
-    @keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+    .overlay.active { display: block; opacity: 1; }
 
     .painel-venda {
       position: fixed;
@@ -600,12 +599,15 @@
       height: 100vh;
       background: var(--surface);
       z-index: 60;
-      box-shadow: -20px 0 50px rgba(15, 23, 42, 0.2);
+      box-shadow: -16px 0 32px rgba(15, 23, 42, 0.14);
       padding: 28px;
-      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.22s ease-out;
       overflow-y: auto;
+      will-change: transform;
+      transform: translateX(100%);
+      right: 0;
     }
-    .painel-venda.active { right: 0; }
+    .painel-venda.active { transform: translateX(0); }
 
     .painel-header {
       display: flex;
@@ -665,12 +667,10 @@
       position: fixed;
       inset: 0;
       z-index: 70;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.5);
       align-items: center;
       justify-content: center;
       padding: 16px;
-      animation: fadeOverlay 0.2s ease;
     }
     .modal-preview.active, .modal-setup.active { display: flex; }
 
@@ -1355,7 +1355,8 @@
       lista.forEach(({ a, idx }) => {
         const linha = document.createElement('tr');
         const catCls = categoriaClass[a.categoria] || '';
-        const nfcHtml = a.nfc === 'Sim' ? `<span class="nfc-yes"><i class="fa-solid fa-wifi"></i> Sim</span>`
+        const nfcIconSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:3px;"><path d="M5 8.5a10 10 0 0 1 0 7"/><path d="M9 6.5a14 14 0 0 1 0 11"/><path d="M13 4.5a18 18 0 0 1 0 15"/></svg>`;
+        const nfcHtml = a.nfc === 'Sim' ? `<span class="nfc-yes">${nfcIconSvg}Sim</span>`
                        : a.nfc === 'Não' ? `<span class="nfc-no">Não</span>`
                        : `<span class="nfc-no">—</span>`;
         const priceCell = v => v ? `<span class="price-cell">R$ ${escapeHtml(v)}</span>` : `<span class="price-cell muted">—</span>`;

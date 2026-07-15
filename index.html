@@ -435,22 +435,76 @@
     }
 
     /* ===================== TABLE ===================== */
+    .category-tables {
+      display: grid;
+      gap: 16px;
+    }
+
+    .category-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .category-section.cat-box-novo { background: #F0FDF4; border-color: #BBF7D0; }
+    .category-section.cat-box-vitrine { background: #EFF6FF; border-color: #BFDBFE; }
+    .category-section.cat-box-semi { background: #FFFBEB; border-color: #FDE68A; }
+    .category-section.cat-box-outlet { background: #FDF2F8; border-color: #FBCFE8; }
+    .category-section.cat-box-uso { background: #EEF2FF; border-color: #C7D2FE; }
+    .category-section.cat-box-rastreio { background: #FEF2F2; border-color: #FECACA; }
+
+    .category-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .category-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .category-section-title i { font-size: 11px; opacity: 0.65; }
+
+    .category-count {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .table-wrapper {
       width: 100%;
       overflow-x: auto;
       overflow-y: hidden;
       border-radius: var(--radius);
       border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.82);
       -webkit-overflow-scrolling: touch;
     }
 
     table {
-      width: max-content;
+      width: 100%;
       min-width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      background: var(--surface);
-      table-layout: auto;
+      background: transparent;
+      table-layout: fixed;
     }
 
     th {
@@ -467,12 +521,14 @@
     }
 
     td {
-      padding: 12px;
+      padding: 10px 9px;
       font-size: 13px;
       vertical-align: middle;
       border-bottom: 1px solid var(--border);
       color: var(--text);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     tbody tr { transition: background 0.12s ease; }
@@ -488,6 +544,7 @@
     .empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.4; }
 
     .coluna-acoes {
+      width: 118px;
       min-width: 118px;
       text-align: center;
     }
@@ -546,7 +603,7 @@
 
     .cell-aparelho strong {
       display: inline-block;
-      max-width: 260px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -554,10 +611,28 @@
     }
 
     .cell-observacao {
-      max-width: 220px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .cell-imei { width: 14%; }
+    .cell-aparelho { width: 22%; }
+    .cell-short { width: 7%; }
+    .cell-garantia { width: 9%; }
+    .cell-price { width: 9%; }
+    .cell-observacao { width: 15%; }
+
+    #areaTabelaPrint.modo-png .table-wrapper { overflow: visible; }
+    #areaTabelaPrint.modo-png table { min-width: 0; width: 100%; }
+    #areaTabelaPrint.modo-png th,
+    #areaTabelaPrint.modo-png td {
+      padding: 8px 7px;
+      font-size: 11px;
+    }
+    #areaTabelaPrint.modo-png .category-section { box-shadow: none; }
+    #areaTabelaPrint.modo-png .cell-aparelho { width: 24%; }
+    #areaTabelaPrint.modo-png .cell-observacao { width: 18%; }
 
     .category-badge {
       display: inline-flex;
@@ -954,34 +1029,13 @@
         <div class="table-toolbar no-png">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input id="buscaTabela" type="text" placeholder="Buscar por nome, IMEI, categoria..." oninput="atualizarTabela()" data-testid="input-busca" />
+            <input id="buscaTabela" type="text" placeholder="Buscar por nome, IMEI, memória..." oninput="atualizarTabela()" data-testid="input-busca" />
           </div>
           <div id="filtrosCategoria" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Categoria</th>
-                <th>IMEI</th>
-                <th>Aparelho</th>
-                <th>Armaz.</th>
-                <th>RAM</th>
-                <th>NFC</th>
-                <th>Garantia</th>
-                <th>À vista</th>
-                <th>5x</th>
-                <th>10x</th>
-                <th>18x</th>
-                <th>Observação</th>
-                <th class="coluna-acoes no-png">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaAparelhos">
-              <tr><td class="empty" colspan="13"><i class="fa-solid fa-mobile-screen"></i>Nenhum aparelho cadastrado.</td></tr>
-            </tbody>
-          </table>
+        <div id="tabelaAparelhos" class="category-tables">
+          <div class="empty"><i class="fa-solid fa-mobile-screen"></i>Nenhum aparelho cadastrado.</div>
         </div>
       </section>
     </div>
@@ -1522,6 +1576,15 @@
       'RASTREIO': 'cat-rastreio'
     };
 
+    const categoriaBoxClass = {
+      'NOVO': 'cat-box-novo',
+      'NOVO DE VITRINE': 'cat-box-vitrine',
+      'SEMI-NOVO': 'cat-box-semi',
+      'OUTLET': 'cat-box-outlet',
+      'USO LOJA': 'cat-box-uso',
+      'RASTREIO': 'cat-box-rastreio'
+    };
+
     /* =================== FORM SUBMIT =================== */
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -1610,15 +1673,17 @@
       atualizarTabela();
     }
 
-    function atualizarTabela() {
+    function atualizarTabela(opcoes = {}) {
       const ordemCategorias = { 'NOVO': 1, 'NOVO DE VITRINE': 2, 'SEMI-NOVO': 3, 'OUTLET': 4, 'USO LOJA': 5, 'RASTREIO': 6 };
       aparelhos.sort((a, b) => (ordemCategorias[a.categoria] || 99) - (ordemCategorias[b.categoria] || 99));
 
-      const busca = (document.getElementById('buscaTabela')?.value || '').toLowerCase().trim();
+      const forcarTodas = opcoes.forcarTodas === true;
+      const ignorarBusca = opcoes.ignorarBusca === true;
+      const busca = ignorarBusca ? '' : (document.getElementById('buscaTabela')?.value || '').toLowerCase().trim();
 
       const lista = aparelhos
         .map((a, idx) => ({ a, idx }))
-        .filter(({ a }) => filtroCategoriaAtivo === 'Todas' || a.categoria === filtroCategoriaAtivo)
+        .filter(({ a }) => forcarTodas || filtroCategoriaAtivo === 'Todas' || a.categoria === filtroCategoriaAtivo)
         .filter(({ a }) => {
           if (!busca) return true;
           return [a.nome, a.imei, a.categoria, a.armazenamento, a.ram, a.nfc, a.garantia, a.observacao]
@@ -1628,31 +1693,77 @@
       tabela.innerHTML = '';
       if (lista.length === 0) {
         const msg = aparelhos.length === 0 ? 'Nenhum aparelho cadastrado.' : 'Nenhum resultado para os filtros aplicados.';
-        tabela.innerHTML = `<tr><td class="empty" colspan="13"><i class="fa-solid fa-mobile-screen"></i>${msg}</td></tr>`;
+        tabela.innerHTML = `<div class="empty"><i class="fa-solid fa-mobile-screen"></i>${msg}</div>`;
         return;
       }
 
-      lista.forEach(({ a, idx }) => {
-        const linha = document.createElement('tr');
-        const catCls = categoriaClass[a.categoria] || '';
-        const nfcIconSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:3px;"><path d="M5 8.5a10 10 0 0 1 0 7"/><path d="M9 6.5a14 14 0 0 1 0 11"/><path d="M13 4.5a18 18 0 0 1 0 15"/></svg>`;
-        const nfcHtml = a.nfc === 'Sim' ? `<span class="nfc-yes">${nfcIconSvg}Sim</span>`
-                       : a.nfc === 'Não' ? `<span class="nfc-no">Não</span>`
-                       : `<span class="nfc-no">—</span>`;
-        const priceCell = v => v ? `<span class="price-cell">R$ ${escapeHtml(v)}</span>` : `<span class="price-cell muted">—</span>`;
+      const categoriasBase = forcarTodas || filtroCategoriaAtivo === 'Todas' ? CATEGORIAS : [filtroCategoriaAtivo];
+      const categoriasExtras = [...new Set(lista.map(({ a }) => a.categoria).filter(c => c && !categoriasBase.includes(c)))];
+      const categoriasRenderizar = [...categoriasBase, ...categoriasExtras];
 
-        linha.innerHTML = `
-          <td><span class="category-badge ${catCls}">${escapeHtml(a.categoria || '')}</span></td>
-          <td><span class="imei-cell">${escapeHtml(a.imei || '—')}</span></td>
+      tabela.innerHTML = categoriasRenderizar.map(categoria => {
+        const itens = lista.filter(({ a }) => a.categoria === categoria);
+        if (itens.length === 0) return '';
+        return montarTabelaCategoria(categoria, itens);
+      }).join('');
+    }
+
+    function montarTabelaCategoria(categoria, itens) {
+      const boxCls = categoriaBoxClass[categoria] || '';
+      const badgeCls = categoriaClass[categoria] || '';
+      const linhas = itens.map(({ a, idx }) => montarLinhaTabela(a, idx)).join('');
+      return `
+        <section class="category-section ${boxCls}">
+          <div class="category-section-header">
+            <h4 class="category-section-title">
+              <i class="fa-solid fa-circle"></i>
+              <span class="category-badge ${badgeCls}">${escapeHtml(categoria || 'SEM CATEGORIA')}</span>
+            </h4>
+            <span class="category-count">${itens.length} ${itens.length === 1 ? 'aparelho' : 'aparelhos'}</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th class="cell-imei">IMEI</th>
+                  <th class="cell-aparelho">Aparelho</th>
+                  <th class="cell-short">Armaz.</th>
+                  <th class="cell-short">RAM</th>
+                  <th class="cell-short">NFC</th>
+                  <th class="cell-garantia">Garantia</th>
+                  <th class="cell-price">À vista</th>
+                  <th class="cell-price">5x</th>
+                  <th class="cell-price">10x</th>
+                  <th class="cell-price">18x</th>
+                  <th class="cell-observacao">Observação</th>
+                  <th class="coluna-acoes no-png">Ações</th>
+                </tr>
+              </thead>
+              <tbody>${linhas}</tbody>
+            </table>
+          </div>
+        </section>`;
+    }
+
+    function montarLinhaTabela(a, idx) {
+      const nfcIconSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:3px;"><path d="M5 8.5a10 10 0 0 1 0 7"/><path d="M9 6.5a14 14 0 0 1 0 11"/><path d="M13 4.5a18 18 0 0 1 0 15"/></svg>`;
+      const nfcHtml = a.nfc === 'Sim' ? `<span class="nfc-yes">${nfcIconSvg}Sim</span>`
+                     : a.nfc === 'Não' ? `<span class="nfc-no">Não</span>`
+                     : `<span class="nfc-no">—</span>`;
+      const priceCell = v => v ? `<span class="price-cell">R$ ${escapeHtml(v)}</span>` : `<span class="price-cell muted">—</span>`;
+
+      return `
+        <tr>
+          <td class="cell-imei"><span class="imei-cell" title="${escapeHtml(a.imei || '')}">${escapeHtml(a.imei || '—')}</span></td>
           <td class="cell-aparelho"><strong title="${escapeHtml(a.nome || '')}">${escapeHtml(a.nome || '')}</strong></td>
-          <td>${escapeHtml(a.armazenamento || '—')}</td>
-          <td>${escapeHtml(a.ram || '—')}</td>
-          <td>${nfcHtml}</td>
-          <td>${escapeHtml(a.garantia || '—')}</td>
-          <td>${priceCell(a.avista)}</td>
-          <td>${priceCell(a.cinco)}</td>
-          <td>${priceCell(a.dez)}</td>
-          <td>${priceCell(a.dezoito)}</td>
+          <td class="cell-short" title="${escapeHtml(a.armazenamento || '')}">${escapeHtml(a.armazenamento || '—')}</td>
+          <td class="cell-short" title="${escapeHtml(a.ram || '')}">${escapeHtml(a.ram || '—')}</td>
+          <td class="cell-short">${nfcHtml}</td>
+          <td class="cell-garantia" title="${escapeHtml(a.garantia || '')}">${escapeHtml(a.garantia || '—')}</td>
+          <td class="cell-price">${priceCell(a.avista)}</td>
+          <td class="cell-price">${priceCell(a.cinco)}</td>
+          <td class="cell-price">${priceCell(a.dez)}</td>
+          <td class="cell-price">${priceCell(a.dezoito)}</td>
           <td class="cell-observacao" title="${escapeHtml(a.observacao || '')}">${escapeHtml(a.observacao || '')}</td>
           <td class="coluna-acoes no-png">
             <div class="acao-select-wrap">
@@ -1666,9 +1777,8 @@
               </select>
               <i class="fa-solid fa-chevron-down"></i>
             </div>
-          </td>`;
-        tabela.appendChild(linha);
-      });
+          </td>
+        </tr>`;
     }
 
     function escapeHtml(s) {
@@ -1965,6 +2075,8 @@
       if (aparelhos.length === 0) { showToast('Cadastre aparelhos antes de exportar.', 'warning'); return; }
       document.getElementById('dataHoraPrint').innerText = `Gerado em ${new Date().toLocaleString('pt-BR')}`;
       const area = document.getElementById('areaTabelaPrint');
+      area.classList.add('modo-png');
+      atualizarTabela({ forcarTodas: true, ignorarBusca: true });
       const ocultar = area.querySelectorAll('.no-png');
       ocultar.forEach(i => i.classList.add('hide-for-png'));
 
@@ -1976,7 +2088,15 @@
       }
 
       try {
-        const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff' });
+        await new Promise(r => requestAnimationFrame(r));
+        const canvas = await html2canvas(area, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          width: area.scrollWidth,
+          height: area.scrollHeight,
+          windowWidth: Math.max(document.documentElement.clientWidth, area.scrollWidth),
+          windowHeight: Math.max(document.documentElement.clientHeight, area.scrollHeight)
+        });
         const link = document.createElement('a');
         link.download = `tabela-aparelhos-${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
@@ -1986,6 +2106,8 @@
         showToast('Erro ao gerar PNG.', 'error');
       } finally {
         ocultar.forEach(i => i.classList.remove('hide-for-png'));
+        area.classList.remove('modo-png');
+        atualizarTabela();
       }
     }
 

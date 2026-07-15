@@ -446,7 +446,7 @@
       border-collapse: separate;
       border-spacing: 0;
       background: var(--surface);
-      min-width: 1250px;
+      min-width: 1350px;
     }
 
     th {
@@ -608,6 +608,10 @@
       right: 0;
     }
     .painel-venda.active { transform: translateX(0); }
+    .painel-venda.wide { width: 760px; max-width: 96vw; }
+    .painel-venda.wide .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .painel-venda.wide .field.full,
+    .painel-venda.wide .field.full-row { grid-column: 1 / -1; }
 
     .painel-header {
       display: flex;
@@ -777,6 +781,7 @@
       .topbar { padding: 12px 16px; }
       .container { padding: 16px 14px 60px; }
       .form-grid, .historico-filtros { grid-template-columns: 1fr; }
+      .painel-venda.wide .form-grid { grid-template-columns: 1fr; }
       .field.full, .field.full-row { grid-column: 1 / -1; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .brand-sub { display: none; }
@@ -850,7 +855,7 @@
         <i class="fa-solid fa-table-list"></i> Tabela de aparelhos
       </button>
       <button class="tab-btn" type="button" onclick="abrirAba('abaCadastro', this)" data-testid="tab-cadastro">
-        <i class="fa-solid fa-plus"></i> Cadastrar / Histórico
+        <i class="fa-solid fa-clock-rotate-left"></i> Histórico
       </button>
     </div>
 
@@ -863,6 +868,9 @@
             <p class="sub" id="dataHoraPrint"></p>
           </div>
           <div class="actions no-png">
+            <button class="btn-primary" type="button" onclick="abrirCadastroAparelho()" data-testid="btn-abrir-cadastro">
+              <i class="fa-solid fa-plus"></i> Cadastrar aparelho
+            </button>
             <button class="btn-ghost" type="button" onclick="baixarTabelaPNG()" data-testid="btn-baixar-png">
               <i class="fa-solid fa-image"></i> Baixar PNG
             </button>
@@ -887,6 +895,7 @@
                 <th>Armaz.</th>
                 <th>RAM</th>
                 <th>NFC</th>
+                <th>Garantia</th>
                 <th>À vista</th>
                 <th>5x</th>
                 <th>10x</th>
@@ -896,7 +905,7 @@
               </tr>
             </thead>
             <tbody id="tabelaAparelhos">
-              <tr><td class="empty" colspan="12"><i class="fa-solid fa-mobile-screen"></i>Nenhum aparelho cadastrado.</td></tr>
+              <tr><td class="empty" colspan="13"><i class="fa-solid fa-mobile-screen"></i>Nenhum aparelho cadastrado.</td></tr>
             </tbody>
           </table>
         </div>
@@ -905,87 +914,6 @@
 
     <!-- ===================== TAB CADASTRO ===================== -->
     <div id="abaCadastro" class="tab-content">
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <h2 class="card-title"><i class="fa-solid fa-plus-circle"></i> Novo aparelho</h2>
-            <p class="card-subtitle">Preencha os dados para cadastrar um novo aparelho no estoque.</p>
-          </div>
-        </div>
-
-        <form id="formAparelho">
-          <div class="form-grid">
-            <div class="field">
-              <label for="imei">IMEI</label>
-              <input id="imei" type="text" placeholder="Digite o IMEI" />
-            </div>
-            <div class="field full">
-              <label for="nome">Nome do aparelho <span class="req">*</span></label>
-              <input id="nome" type="text" placeholder="Ex: iPhone 15 Pro Max" required />
-            </div>
-            <div class="field">
-              <label for="armazenamento">Armazenamento</label>
-              <input id="armazenamento" type="text" placeholder="Ex: 128GB" />
-            </div>
-            <div class="field">
-              <label for="ram">Memória RAM</label>
-              <input id="ram" type="text" placeholder="Ex: 4GB" />
-            </div>
-            <div class="field">
-              <label for="nfc">Possui NFC?</label>
-              <select id="nfc">
-                <option value="">—</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="categoria">Categoria</label>
-              <select id="categoria">
-                <option value="NOVO">NOVO</option>
-                <option value="NOVO DE VITRINE">NOVO DE VITRINE</option>
-                <option value="SEMI-NOVO">SEMI-NOVO</option>
-                <option value="OUTLET">OUTLET</option>
-                <option value="USO LOJA">USO LOJA</option>
-                <option value="RASTREIO">RASTREIO</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="avista">Valor à vista</label>
-              <input id="avista" type="text" placeholder="R$" />
-            </div>
-            <div class="field">
-              <label for="cinco">Valor em 5x</label>
-              <input id="cinco" type="text" placeholder="R$" />
-            </div>
-            <div class="field">
-              <label for="dez">Valor em 10x</label>
-              <input id="dez" type="text" placeholder="R$" />
-            </div>
-            <div class="field">
-              <label for="dezoito">Valor em 18x</label>
-              <input id="dezoito" type="text" placeholder="R$" />
-            </div>
-            <div class="field full-row">
-              <label for="observacao">Observação opcional</label>
-              <textarea id="observacao" placeholder="Detalhes adicionais sobre o aparelho..."></textarea>
-            </div>
-          </div>
-
-          <div class="actions" style="margin-top: 18px;">
-            <button class="btn-primary" type="submit" data-testid="btn-cadastrar">
-              <i class="fa-solid fa-check"></i> Cadastrar aparelho
-            </button>
-            <button class="btn-ghost" type="reset">
-              <i class="fa-solid fa-rotate-left"></i> Limpar formulário
-            </button>
-            <button class="btn-danger" type="button" onclick="limparTudo()" style="margin-left:auto;" data-testid="btn-limpar-lista">
-              <i class="fa-solid fa-trash"></i> Limpar lista
-            </button>
-          </div>
-        </form>
-      </section>
-
       <section class="card">
         <div class="card-header">
           <div>
@@ -1041,6 +969,125 @@
 
   <!-- ===================== PAINEL LATERAL ===================== -->
   <aside id="painelVenda" class="painel-venda">
+
+    <!-- Box Cadastro -->
+    <div id="boxCadastro" style="display:none;">
+      <div class="painel-header">
+        <h2><i class="fa-solid fa-plus-circle"></i> Cadastrar aparelho</h2>
+        <button class="painel-close" type="button" onclick="fecharPainelVenda()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="card-subtitle" style="margin: -12px 0 18px;">Preencha os dados para cadastrar um novo aparelho no estoque.</p>
+
+      <form id="formAparelho">
+        <div class="form-grid">
+          <div class="field">
+            <label for="imei">IMEI</label>
+            <input id="imei" type="text" placeholder="Digite o IMEI" />
+          </div>
+          <div class="field full">
+            <label for="nome">Nome do aparelho <span class="req">*</span></label>
+            <input id="nome" type="text" placeholder="Ex: iPhone 15 Pro Max" required />
+          </div>
+          <div class="field">
+            <label for="armazenamentoSelect">Armazenamento</label>
+            <select id="armazenamentoSelect" onchange="toggleManual('armazenamento')">
+              <option value="">— Selecione —</option>
+              <option value="4 GB">4 GB</option>
+              <option value="8 GB">8 GB</option>
+              <option value="16 GB">16 GB</option>
+              <option value="32 GB">32 GB</option>
+              <option value="64 GB">64 GB</option>
+              <option value="128 GB">128 GB</option>
+              <option value="256 GB">256 GB</option>
+              <option value="512 GB">512 GB</option>
+              <option value="1 TB">1 TB</option>
+              <option value="2 TB">2 TB</option>
+              <option value="__manual__">Incluir manualmente…</option>
+            </select>
+            <input id="armazenamento" type="text" placeholder="Digite manualmente (ex: 128 GB)" style="display:none; margin-top:6px;" />
+          </div>
+          <div class="field">
+            <label for="ramSelect">Memória RAM</label>
+            <select id="ramSelect" onchange="toggleManual('ram')">
+              <option value="">— Selecione —</option>
+              <option value="1 GB">1 GB</option>
+              <option value="2 GB">2 GB</option>
+              <option value="3 GB">3 GB</option>
+              <option value="4 GB">4 GB</option>
+              <option value="6 GB">6 GB</option>
+              <option value="8 GB">8 GB</option>
+              <option value="10 GB">10 GB</option>
+              <option value="12 GB">12 GB</option>
+              <option value="16 GB">16 GB</option>
+              <option value="18 GB">18 GB</option>
+              <option value="24 GB">24 GB</option>
+              <option value="__manual__">Incluir manualmente…</option>
+            </select>
+            <input id="ram" type="text" placeholder="Digite manualmente (ex: 4 GB)" style="display:none; margin-top:6px;" />
+          </div>
+          <div class="field">
+            <label for="nfc">Possui NFC?</label>
+            <select id="nfc">
+              <option value="">—</option>
+              <option value="Sim">Sim</option>
+              <option value="Não">Não</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="garantia">Garantia</label>
+            <select id="garantia">
+              <option value="">— Selecione —</option>
+              <option value="3 meses">3 meses</option>
+              <option value="6 meses">6 meses</option>
+              <option value="1 ano">1 ano</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="categoria">Categoria</label>
+            <select id="categoria">
+              <option value="NOVO">NOVO</option>
+              <option value="NOVO DE VITRINE">NOVO DE VITRINE</option>
+              <option value="SEMI-NOVO">SEMI-NOVO</option>
+              <option value="OUTLET">OUTLET</option>
+              <option value="USO LOJA">USO LOJA</option>
+              <option value="RASTREIO">RASTREIO</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="avista">Valor à vista</label>
+            <input id="avista" type="text" placeholder="R$" />
+          </div>
+          <div class="field">
+            <label for="cinco">Valor em 5x</label>
+            <input id="cinco" type="text" placeholder="R$" />
+          </div>
+          <div class="field">
+            <label for="dez">Valor em 10x</label>
+            <input id="dez" type="text" placeholder="R$" />
+          </div>
+          <div class="field">
+            <label for="dezoito">Valor em 18x</label>
+            <input id="dezoito" type="text" placeholder="R$" />
+          </div>
+          <div class="field full-row">
+            <label for="observacao">Observação opcional</label>
+            <textarea id="observacao" placeholder="Detalhes adicionais sobre o aparelho..."></textarea>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-top: 18px;">
+          <button class="btn-primary" type="submit" data-testid="btn-cadastrar">
+            <i class="fa-solid fa-check"></i> Cadastrar aparelho
+          </button>
+          <button class="btn-ghost" type="reset">
+            <i class="fa-solid fa-rotate-left"></i> Limpar formulário
+          </button>
+          <button class="btn-danger" type="button" onclick="limparTudo()" style="margin-left:auto;" data-testid="btn-limpar-lista">
+            <i class="fa-solid fa-trash"></i> Limpar lista
+          </button>
+        </div>
+      </form>
+    </div>
 
     <!-- Box Venda -->
     <div id="boxVenda" style="display:none;">
@@ -1106,14 +1153,58 @@
           <option value="RASTREIO">RASTREIO</option>
         </select>
       </div>
-      <div class="campo"><label for="editarArmazenamento">Armazenamento</label><input id="editarArmazenamento" type="text" /></div>
-      <div class="campo"><label for="editarRam">Memória RAM</label><input id="editarRam" type="text" /></div>
+      <div class="campo">
+        <label for="editarArmazenamentoSelect">Armazenamento</label>
+        <select id="editarArmazenamentoSelect" onchange="toggleManual('editarArmazenamento')">
+          <option value="">— Selecione —</option>
+          <option value="4 GB">4 GB</option>
+          <option value="8 GB">8 GB</option>
+          <option value="16 GB">16 GB</option>
+          <option value="32 GB">32 GB</option>
+          <option value="64 GB">64 GB</option>
+          <option value="128 GB">128 GB</option>
+          <option value="256 GB">256 GB</option>
+          <option value="512 GB">512 GB</option>
+          <option value="1 TB">1 TB</option>
+          <option value="2 TB">2 TB</option>
+          <option value="__manual__">Incluir manualmente…</option>
+        </select>
+        <input id="editarArmazenamento" type="text" placeholder="Digite manualmente (ex: 128 GB)" style="display:none; margin-top:6px;" />
+      </div>
+      <div class="campo">
+        <label for="editarRamSelect">Memória RAM</label>
+        <select id="editarRamSelect" onchange="toggleManual('editarRam')">
+          <option value="">— Selecione —</option>
+          <option value="1 GB">1 GB</option>
+          <option value="2 GB">2 GB</option>
+          <option value="3 GB">3 GB</option>
+          <option value="4 GB">4 GB</option>
+          <option value="6 GB">6 GB</option>
+          <option value="8 GB">8 GB</option>
+          <option value="10 GB">10 GB</option>
+          <option value="12 GB">12 GB</option>
+          <option value="16 GB">16 GB</option>
+          <option value="18 GB">18 GB</option>
+          <option value="24 GB">24 GB</option>
+          <option value="__manual__">Incluir manualmente…</option>
+        </select>
+        <input id="editarRam" type="text" placeholder="Digite manualmente (ex: 4 GB)" style="display:none; margin-top:6px;" />
+      </div>
       <div class="campo">
         <label for="editarNfc">Possui NFC?</label>
         <select id="editarNfc">
           <option value="">—</option>
           <option value="Sim">Sim</option>
           <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="editarGarantia">Garantia</label>
+        <select id="editarGarantia">
+          <option value="">— Selecione —</option>
+          <option value="3 meses">3 meses</option>
+          <option value="6 meses">6 meses</option>
+          <option value="1 ano">1 ano</option>
         </select>
       </div>
       <div class="campo"><label for="editarAvista">Valor à vista</label><input id="editarAvista" type="text" /></div>
@@ -1236,6 +1327,107 @@
       showToast('Loja configurada com sucesso!', 'success');
     }
 
+    /* =================== SELECT / MANUAL TOGGLE =================== */
+    function toggleManual(inputId) {
+      const select = document.getElementById(inputId + 'Select');
+      const input = document.getElementById(inputId);
+      if (!select || !input) return;
+      if (select.value === '__manual__') {
+        input.style.display = '';
+        input.value = '';
+        input.focus();
+      } else {
+        input.style.display = 'none';
+        input.value = select.value;
+      }
+    }
+
+    // Aplica a seleção de um valor (usado ao editar): se estiver na lista, seleciona; senão, ativa modo manual.
+    function aplicarValorSelect(inputId, valor) {
+      const select = document.getElementById(inputId + 'Select');
+      const input = document.getElementById(inputId);
+      if (!select || !input) return;
+      const v = (valor || '').toString().trim();
+      const opcoes = Array.from(select.options).map(o => o.value);
+      if (v && opcoes.includes(v)) {
+        select.value = v;
+        input.style.display = 'none';
+        input.value = v;
+      } else if (v) {
+        select.value = '__manual__';
+        input.style.display = '';
+        input.value = v;
+      } else {
+        select.value = '';
+        input.style.display = 'none';
+        input.value = '';
+      }
+    }
+
+    /* =================== PARSE PREÇOS (ponto e vírgula) =================== */
+    // Normaliza valores: aceita ponto e/ou vírgula como separador decimal
+    // Exemplos: "1.299,90" -> 1299.90 ; "1299.90" -> 1299.90 ; "1,299.90" -> 1299.90 ; "1200" -> 1200
+    function parsePreco(valor) {
+      if (valor === null || valor === undefined) return NaN;
+      let s = String(valor).trim();
+      if (!s) return NaN;
+      // Remove tudo que não for dígito, vírgula, ponto ou sinal negativo
+      s = s.replace(/[^\d,.\-]/g, '');
+      if (!s) return NaN;
+      const temVirgula = s.includes(',');
+      const temPonto = s.includes('.');
+      if (temVirgula && temPonto) {
+        // O último dos dois é o separador decimal; o outro é separador de milhar
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+          // vírgula é decimal
+          s = s.replace(/\./g, '').replace(',', '.');
+        } else {
+          // ponto é decimal
+          s = s.replace(/,/g, '');
+        }
+      } else if (temVirgula) {
+        // só vírgula -> tratar como decimal
+        s = s.replace(',', '.');
+      }
+      // só ponto ou nenhum -> mantém
+      const n = parseFloat(s);
+      return isNaN(n) ? NaN : n;
+    }
+
+    // Formata para exibição no padrão BR: 1.299,90
+    function formatarPrecoBR(valor) {
+      const n = parsePreco(valor);
+      if (isNaN(n)) return '';
+      return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Ao sair do campo de preço, normaliza para o formato BR
+    function normalizarCampoPreco(input) {
+      if (!input) return;
+      const bruto = input.value.trim();
+      if (!bruto) return;
+      const n = parsePreco(bruto);
+      if (isNaN(n)) {
+        showToast('Valor inválido: ' + bruto, 'warning');
+        return;
+      }
+      input.value = formatarPrecoBR(n);
+    }
+
+    // Aplica listeners de normalização aos campos de valores
+    function inicializarCamposPreco() {
+      const ids = ['avista', 'cinco', 'dez', 'dezoito', 'editarAvista', 'editarCinco', 'editarDez', 'editarDezoito'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // Permite ponto, vírgula e dígitos enquanto digita
+        el.addEventListener('input', () => {
+          el.value = el.value.replace(/[^\d,.]/g, '');
+        });
+        el.addEventListener('blur', () => normalizarCampoPreco(el));
+      });
+    }
+
     /* =================== STATE =================== */
     const form = document.getElementById('formAparelho');
     const tabela = document.getElementById('tabelaAparelhos');
@@ -1262,19 +1454,26 @@
       const nome = valor('nome');
       if (!nome) { showToast('Informe o nome do aparelho.', 'warning'); return; }
 
+      // Se o select estiver em modo select (não manual), pega o valor do select
+      const armazSelect = document.getElementById('armazenamentoSelect');
+      const ramSelect = document.getElementById('ramSelect');
+      const armazVal = armazSelect.value === '__manual__' ? valor('armazenamento') : (armazSelect.value || valor('armazenamento'));
+      const ramVal = ramSelect.value === '__manual__' ? valor('ram') : (ramSelect.value || valor('ram'));
+
       const aparelho = {
         id: Date.now(),
         categoria: valor('categoria'),
         status: 'Disponível',
         imei: valor('imei'),
         nome,
-        armazenamento: valor('armazenamento'),
-        ram: valor('ram'),
+        armazenamento: armazVal,
+        ram: ramVal,
         nfc: valor('nfc'),
-        avista: valor('avista'),
-        cinco: valor('cinco'),
-        dez: valor('dez'),
-        dezoito: valor('dezoito'),
+        garantia: valor('garantia'),
+        avista: formatarPrecoBR(valor('avista')) || valor('avista'),
+        cinco: formatarPrecoBR(valor('cinco')) || valor('cinco'),
+        dez: formatarPrecoBR(valor('dez')) || valor('dez'),
+        dezoito: formatarPrecoBR(valor('dezoito')) || valor('dezoito'),
         observacao: valor('observacao'),
         vendedor: '',
         lojaTransferida: '',
@@ -1284,10 +1483,17 @@
       registrarHistorico('Cadastro', aparelho, 'Aparelho cadastrado no sistema');
       salvarDados();
       form.reset();
+      // Reset também dos campos manuais/select
+      ['armazenamento', 'ram'].forEach(id => {
+        const inp = document.getElementById(id);
+        const sel = document.getElementById(id + 'Select');
+        if (inp) { inp.value = ''; inp.style.display = 'none'; }
+        if (sel) sel.value = '';
+      });
       atualizarTela();
       showToast('Aparelho cadastrado com sucesso!', 'success');
-      // volta pra aba de tabela
-      document.querySelector('.tab-btn').click();
+      fecharPainelVenda();
+      document.querySelector('[data-testid="tab-tabela"]').click();
     });
 
     function valor(id) { return document.getElementById(id).value.trim(); }
@@ -1341,14 +1547,14 @@
         .filter(({ a }) => filtroCategoriaAtivo === 'Todas' || a.categoria === filtroCategoriaAtivo)
         .filter(({ a }) => {
           if (!busca) return true;
-          return [a.nome, a.imei, a.categoria, a.armazenamento, a.ram, a.observacao]
-            .filter(Boolean).some(v => v.toLowerCase().includes(busca));
+          return [a.nome, a.imei, a.categoria, a.armazenamento, a.ram, a.nfc, a.garantia, a.observacao]
+            .filter(Boolean).some(v => String(v).toLowerCase().includes(busca));
         });
 
       tabela.innerHTML = '';
       if (lista.length === 0) {
         const msg = aparelhos.length === 0 ? 'Nenhum aparelho cadastrado.' : 'Nenhum resultado para os filtros aplicados.';
-        tabela.innerHTML = `<tr><td class="empty" colspan="12"><i class="fa-solid fa-mobile-screen"></i>${msg}</td></tr>`;
+        tabela.innerHTML = `<tr><td class="empty" colspan="13"><i class="fa-solid fa-mobile-screen"></i>${msg}</td></tr>`;
         return;
       }
 
@@ -1368,6 +1574,7 @@
           <td>${escapeHtml(a.armazenamento || '—')}</td>
           <td>${escapeHtml(a.ram || '—')}</td>
           <td>${nfcHtml}</td>
+          <td>${escapeHtml(a.garantia || '—')}</td>
           <td>${priceCell(a.avista)}</td>
           <td>${priceCell(a.cinco)}</td>
           <td>${priceCell(a.dez)}</td>
@@ -1395,6 +1602,7 @@
       let texto = `*Categoria*: ${a.categoria || ''}\n` +
                   `*Aparelho*: ${a.nome || ''}\n` +
                   `*Memória*: ${a.armazenamento || ''} GB / ${a.ram || ''} RAM\n` +
+                  `*Garantia*: ${a.garantia || '—'}\n` +
                   `*À vista*: R$ ${a.avista || ''}\n` +
                   `*5x*: R$ ${a.cinco || ''}\n` +
                   `*10x*: R$ ${a.dez || ''}\n` +
@@ -1415,9 +1623,10 @@
       document.getElementById('editarImei').value = a.imei || '';
       document.getElementById('editarNome').value = a.nome || '';
       document.getElementById('editarCategoria').value = a.categoria || 'NOVO';
-      document.getElementById('editarArmazenamento').value = a.armazenamento || '';
-      document.getElementById('editarRam').value = a.ram || '';
+      aplicarValorSelect('editarArmazenamento', a.armazenamento || '');
+      aplicarValorSelect('editarRam', a.ram || '');
       document.getElementById('editarNfc').value = a.nfc || '';
+      document.getElementById('editarGarantia').value = a.garantia || '';
       document.getElementById('editarAvista').value = a.avista || '';
       document.getElementById('editarCinco').value = a.cinco || '';
       document.getElementById('editarDez').value = a.dez || '';
@@ -1436,13 +1645,20 @@
       a.imei = document.getElementById('editarImei').value.trim();
       a.nome = document.getElementById('editarNome').value.trim();
       a.categoria = document.getElementById('editarCategoria').value;
-      a.armazenamento = document.getElementById('editarArmazenamento').value.trim();
-      a.ram = document.getElementById('editarRam').value.trim();
+      const eArmSel = document.getElementById('editarArmazenamentoSelect');
+      const eRamSel = document.getElementById('editarRamSelect');
+      a.armazenamento = eArmSel.value === '__manual__'
+        ? document.getElementById('editarArmazenamento').value.trim()
+        : (eArmSel.value || document.getElementById('editarArmazenamento').value.trim());
+      a.ram = eRamSel.value === '__manual__'
+        ? document.getElementById('editarRam').value.trim()
+        : (eRamSel.value || document.getElementById('editarRam').value.trim());
       a.nfc = document.getElementById('editarNfc').value;
-      a.avista = document.getElementById('editarAvista').value.trim();
-      a.cinco = document.getElementById('editarCinco').value.trim();
-      a.dez = document.getElementById('editarDez').value.trim();
-      a.dezoito = document.getElementById('editarDezoito').value.trim();
+      a.garantia = document.getElementById('editarGarantia').value;
+      a.avista = formatarPrecoBR(document.getElementById('editarAvista').value.trim()) || document.getElementById('editarAvista').value.trim();
+      a.cinco = formatarPrecoBR(document.getElementById('editarCinco').value.trim()) || document.getElementById('editarCinco').value.trim();
+      a.dez = formatarPrecoBR(document.getElementById('editarDez').value.trim()) || document.getElementById('editarDez').value.trim();
+      a.dezoito = formatarPrecoBR(document.getElementById('editarDezoito').value.trim()) || document.getElementById('editarDezoito').value.trim();
       a.observacao = document.getElementById('editarObservacao').value.trim();
 
       registrarHistorico('Edição', a, 'Produto editado pelo painel lateral');
@@ -1454,24 +1670,32 @@
 
     /* =================== PAINEL =================== */
     function mostrarBox(idMostrar) {
-      ['boxVenda', 'boxTransferencia', 'boxEditar'].forEach(id => {
+      ['boxCadastro', 'boxVenda', 'boxTransferencia', 'boxEditar'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = id === idMostrar ? 'block' : 'none';
       });
     }
 
-    function abrirPainel() {
+    function abrirPainel(wide = false) {
       document.getElementById('overlayVenda').classList.add('active');
-      document.getElementById('painelVenda').classList.add('active');
+      const painel = document.getElementById('painelVenda');
+      painel.classList.toggle('wide', wide);
+      painel.classList.add('active');
     }
 
     function fecharPainelVenda() {
-      ['boxVenda', 'boxTransferencia', 'boxEditar'].forEach(id => {
+      ['boxCadastro', 'boxVenda', 'boxTransferencia', 'boxEditar'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
       document.getElementById('overlayVenda').classList.remove('active');
-      document.getElementById('painelVenda').classList.remove('active');
+      document.getElementById('painelVenda').classList.remove('active', 'wide');
+    }
+
+    function abrirCadastroAparelho() {
+      mostrarBox('boxCadastro');
+      abrirPainel(true);
+      setTimeout(() => document.getElementById('nome').focus(), 100);
     }
 
     /* =================== VENDA =================== */
@@ -1499,8 +1723,8 @@
       const loja = getNomeLoja() || 'Loja';
       const produto = `${a.nome || ''} ${a.armazenamento || ''} GB / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
 
-      const textoVenda = `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpfCnpj}\nTELEFONE: ${telefone}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${loja}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${pedidoBling}\nN° CCB: ${numeroCcb || '—'}`;
-      const venda = { cliente, cpfCnpj, telefone, dataCompra, loja, produto, imei: a.imei || '', vendedor, pedidoBling, numeroCcb, textoVenda };
+      const textoVenda = `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpfCnpj}\nTELEFONE: ${telefone}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${loja}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nGARANTIA: ${a.garantia || '—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${pedidoBling}\nN° CCB: ${numeroCcb || '—'}`;
+      const venda = { cliente, cpfCnpj, telefone, dataCompra, loja, produto, imei: a.imei || '', garantia: a.garantia || '', vendedor, pedidoBling, numeroCcb, textoVenda };
 
       registrarHistorico('Venda', a, textoVenda, venda);
       aparelhos.splice(index, 1);
@@ -1548,8 +1772,8 @@
       const lojaOrigem = getNomeLoja() || 'Loja';
       const produto = `${a.nome || ''} ${a.armazenamento || ''} GB / ${a.ram || ''} RAM${a.observacao ? ' ' + a.observacao : ''}`.trim();
 
-      const textoTransferencia = `LOJA ORIGEM: ${lojaOrigem}\nLOJA DESTINO: ${lojaTransferida}\nDATA: ${dataTransferencia}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nVENDEDOR: ${vendedor}\nENTREGADOR: ${entregador}`;
-      const dados = { lojaOrigem, lojaTransferida, dataTransferencia, produto, imei: a.imei || '', vendedor, entregador, textoTransferencia };
+      const textoTransferencia = `LOJA ORIGEM: ${lojaOrigem}\nLOJA DESTINO: ${lojaTransferida}\nDATA: ${dataTransferencia}\nPRODUTO: ${produto}\nIMEI: ${a.imei || ''}\nGARANTIA: ${a.garantia || '—'}\nVENDEDOR: ${vendedor}\nENTREGADOR: ${entregador}`;
+      const dados = { lojaOrigem, lojaTransferida, dataTransferencia, produto, imei: a.imei || '', garantia: a.garantia || '', vendedor, entregador, textoTransferencia };
 
       registrarHistorico('Transferência', a, textoTransferencia, dados);
       aparelhos.splice(index, 1);
@@ -1579,7 +1803,7 @@
         data: new Date().toISOString(),
         tipo, detalhe,
         categoria: a.categoria, nome: a.nome, imei: a.imei,
-        armazenamento: a.armazenamento, ram: a.ram,
+        armazenamento: a.armazenamento, ram: a.ram, garantia: a.garantia,
         avista: a.avista, cinco: a.cinco, dez: a.dez, dezoito: a.dezoito,
         observacao: a.observacao, dadosExtras
       });
@@ -1595,7 +1819,7 @@
         const dataItem = item.data.slice(0, 10);
         const okData = (!inicio || dataItem >= inicio) && (!fim || dataItem <= fim);
         const okTipo = tipo === 'Todos' || item.tipo === tipo;
-        const okBusca = !busca || [item.nome, item.imei, item.detalhe, item.dadosExtras?.cliente, item.dadosExtras?.lojaTransferida]
+        const okBusca = !busca || [item.nome, item.imei, item.garantia, item.detalhe, item.dadosExtras?.cliente, item.dadosExtras?.lojaTransferida]
                          .filter(Boolean).some(v => String(v).toLowerCase().includes(busca));
         return okData && okTipo && okBusca;
       });
@@ -1615,7 +1839,7 @@
         if (item.tipo === 'Transferência' && item.dadosExtras && item.dadosExtras.textoTransferencia) {
           return `[${dataBR}] TRANSFERÊNCIA\n${item.dadosExtras.textoTransferencia}\n`;
         }
-        return `[${dataBR}] ${item.tipo}\nCategoria: ${item.categoria || ''}\nAparelho: ${item.nome || ''}\nIMEI: ${item.imei || ''}\nDetalhe: ${item.detalhe || ''}\nValores: À vista ${item.avista || ''} | 5x ${item.cinco || ''} | 10x ${item.dez || ''} | 18x ${item.dezoito || ''}\n`;
+        return `[${dataBR}] ${item.tipo}\nCategoria: ${item.categoria || ''}\nAparelho: ${item.nome || ''}\nIMEI: ${item.imei || ''}\nGarantia: ${item.garantia || '—'}\nDetalhe: ${item.detalhe || ''}\nValores: À vista ${item.avista || ''} | 5x ${item.cinco || ''} | 10x ${item.dez || ''} | 18x ${item.dezoito || ''}\n`;
       }).join('\n------------------------------\n');
     }
 
@@ -1685,6 +1909,7 @@
 
     /* =================== INIT =================== */
     aplicarNomeLoja();
+    inicializarCamposPreco();
     atualizarTela();
 
     // se ainda não tiver nome de loja, abre o modal de setup
@@ -1692,5 +1917,7 @@
       setTimeout(() => abrirModalLoja(), 250);
     }
   </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>

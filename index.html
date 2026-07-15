@@ -487,14 +487,62 @@
     }
     .empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.4; }
 
-    .acao-botoes {
-      display: flex;
-      gap: 4px;
-      flex-wrap: nowrap;
-      min-width: max-content;
+    .coluna-acoes {
+      min-width: 118px;
+      text-align: center;
     }
 
-    .coluna-acoes { min-width: 178px; }
+    th.coluna-acoes,
+    td.coluna-acoes {
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: var(--surface);
+      box-shadow: -8px 0 16px rgba(15, 23, 42, 0.06);
+    }
+
+    th.coluna-acoes {
+      z-index: 4;
+      background: var(--surface-2);
+    }
+
+    tbody tr:hover td.coluna-acoes { background: var(--surface-2); }
+
+    .acao-select-wrap {
+      position: relative;
+      display: inline-flex;
+      width: 104px;
+    }
+
+    .acao-select-wrap i {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: white;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .select-acao {
+      width: 100%;
+      min-width: 104px;
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 8px 28px 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .select-acao:hover { background: var(--primary-hover); }
+    .select-acao:focus { box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.14); }
+    .select-acao option { color: var(--text); background: var(--surface); }
 
     .cell-aparelho strong {
       display: inline-block;
@@ -1607,12 +1655,16 @@
           <td>${priceCell(a.dezoito)}</td>
           <td class="cell-observacao" title="${escapeHtml(a.observacao || '')}">${escapeHtml(a.observacao || '')}</td>
           <td class="coluna-acoes no-png">
-            <div class="acao-botoes">
-              <button class="btn-copy btn-icon" type="button" onclick="copiarInformacoes(${idx})" title="Copiar"><i class="fa-solid fa-copy"></i></button>
-              <button class="btn-secondary btn-icon" type="button" onclick="editarProduto(${idx})" title="Editar"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn-warning btn-icon" type="button" onclick="marcarVendido(${idx})" title="Vendido"><i class="fa-solid fa-cart-shopping"></i></button>
-              <button class="btn-purple btn-icon" type="button" onclick="marcarTransferido(${idx})" title="Transferir"><i class="fa-solid fa-truck-fast"></i></button>
-              <button class="btn-danger btn-icon" type="button" onclick="removerAparelho(${idx})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+            <div class="acao-select-wrap">
+              <select class="select-acao" onchange="executarAcaoTabela(this, ${idx})" aria-label="Selecionar ação para ${escapeHtml(a.nome || 'aparelho')}">
+                <option value="">Ações</option>
+                <option value="copiar">Copiar</option>
+                <option value="editar">Editar</option>
+                <option value="vender">Vendido</option>
+                <option value="transferir">Transferir</option>
+                <option value="excluir">Excluir</option>
+              </select>
+              <i class="fa-solid fa-chevron-down"></i>
             </div>
           </td>`;
         tabela.appendChild(linha);
@@ -1621,6 +1673,18 @@
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function executarAcaoTabela(select, index) {
+      const acao = select.value;
+      select.value = '';
+      if (!acao) return;
+
+      if (acao === 'copiar') copiarInformacoes(index);
+      if (acao === 'editar') editarProduto(index);
+      if (acao === 'vender') marcarVendido(index);
+      if (acao === 'transferir') marcarTransferido(index);
+      if (acao === 'excluir') removerAparelho(index);
     }
 
     /* =================== COPIAR INFOS =================== */

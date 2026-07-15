@@ -436,17 +436,21 @@
 
     /* ===================== TABLE ===================== */
     .table-wrapper {
+      width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       border-radius: var(--radius);
       border: 1px solid var(--border);
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       background: var(--surface);
-      min-width: 1350px;
+      table-layout: auto;
     }
 
     th {
@@ -468,6 +472,7 @@
       vertical-align: middle;
       border-bottom: 1px solid var(--border);
       color: var(--text);
+      white-space: nowrap;
     }
 
     tbody tr { transition: background 0.12s ease; }
@@ -486,6 +491,24 @@
       display: flex;
       gap: 4px;
       flex-wrap: nowrap;
+      min-width: max-content;
+    }
+
+    .coluna-acoes { min-width: 178px; }
+
+    .cell-aparelho strong {
+      display: inline-block;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    .cell-observacao {
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .category-badge {
@@ -497,6 +520,7 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.02em;
+      white-space: nowrap;
     }
     .cat-novo { background: #DCFCE7; color: #15803D; }
     .cat-vitrine { background: #DBEAFE; color: #1D4ED8; }
@@ -510,6 +534,7 @@
       font-weight: 600;
       font-size: 12.5px;
       color: var(--text);
+      white-space: nowrap;
     }
     .price-cell.muted { color: var(--text-soft); font-weight: 500; }
 
@@ -517,6 +542,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .nfc-yes { color: var(--success); font-weight: 700; }
@@ -1570,7 +1596,7 @@
         linha.innerHTML = `
           <td><span class="category-badge ${catCls}">${escapeHtml(a.categoria || '')}</span></td>
           <td><span class="imei-cell">${escapeHtml(a.imei || '—')}</span></td>
-          <td><strong>${escapeHtml(a.nome || '')}</strong></td>
+          <td class="cell-aparelho"><strong title="${escapeHtml(a.nome || '')}">${escapeHtml(a.nome || '')}</strong></td>
           <td>${escapeHtml(a.armazenamento || '—')}</td>
           <td>${escapeHtml(a.ram || '—')}</td>
           <td>${nfcHtml}</td>
@@ -1579,7 +1605,7 @@
           <td>${priceCell(a.cinco)}</td>
           <td>${priceCell(a.dez)}</td>
           <td>${priceCell(a.dezoito)}</td>
-          <td style="max-width:180px;">${escapeHtml(a.observacao || '')}</td>
+          <td class="cell-observacao" title="${escapeHtml(a.observacao || '')}">${escapeHtml(a.observacao || '')}</td>
           <td class="coluna-acoes no-png">
             <div class="acao-botoes">
               <button class="btn-copy btn-icon" type="button" onclick="copiarInformacoes(${idx})" title="Copiar"><i class="fa-solid fa-copy"></i></button>
@@ -1917,6 +1943,7 @@
       setTimeout(() => abrirModalLoja(), 250);
     }
   </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>

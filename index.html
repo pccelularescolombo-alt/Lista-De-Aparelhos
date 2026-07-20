@@ -139,6 +139,11 @@ tbody tr:last-child td{border-bottom:none;}
 .texto-soft{color:var(--text-soft);font-size:11.5px;font-style:italic;}
 .acao-select-wrap select{min-width:104px;padding:7px 24px 7px 10px;border:none;border-radius:7px;background:var(--primary);color:#fff;font-size:11.5px;font-weight:700;}
 .cell-observacao{max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+.categoria-group-header td{background:var(--surface-2);font-weight:800;font-size:11px;color:var(--text);padding:9px 10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+.categoria-group-header:hover{background:var(--surface-2) !important;}
+.modo-print .col-acoes{display:none !important;}
+.modo-print #btnAbrirCadastro{display:none !important;}
+.btn-toggle-print.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* ===== PAINEL LATERAL ===== */
 .painel-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:90;opacity:0;pointer-events:none;transition:opacity .2s ease;}
@@ -237,14 +242,15 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="aparelhos" onclick="mostrarAba('aparelhos')"><i class="fa-solid fa-table-list"></i> Aparelhos</button>
+      <button class="tab-btn active" data-tab="lojaAtual" onclick="mostrarAba('lojaAtual')"><i class="fa-solid fa-store"></i> Loja Atual</button>
+      <button class="tab-btn" data-tab="todasLojas" onclick="mostrarAba('todasLojas')"><i class="fa-solid fa-warehouse"></i> Todos os Aparelhos</button>
       <button class="tab-btn" data-tab="transferencias" onclick="mostrarAba('transferencias')"><i class="fa-solid fa-truck-fast"></i> Transferências <span id="badgeTransfPend" class="badge badge-warning hidden" style="margin-left:4px;"></span></button>
       <button class="tab-btn" data-tab="historico" onclick="mostrarAba('historico')"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
       <button class="tab-btn hidden" data-master-only data-tab="admin" onclick="mostrarAba('admin')"><i class="fa-solid fa-user-shield"></i> Administração</button>
     </div>
 
-    <!-- ===== ABA APARELHOS ===== -->
-    <div class="tab-content active" id="tab-aparelhos">
+    <!-- ===== ABA 1: LOJA ATUAL ===== -->
+    <div class="tab-content active" id="tab-lojaAtual">
       <div class="card hidden" id="cardCadastroAparelho">
         <h3 class="card-title"><i class="fa-solid fa-plus-circle"></i> Cadastrar novo aparelho</h3>
         <div class="field hidden" id="wrapLojaCadastro" style="margin-bottom:16px;max-width:320px;">
@@ -301,19 +307,41 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="card">
         <div class="table-toolbar">
           <button class="btn-accent" id="btnAbrirCadastro" onclick="toggleFormCadastro()"><i class="fa-solid fa-plus"></i> Cadastrar aparelho</button>
-          <div class="select-loja-wrap"><i class="fa-solid fa-store"></i> Ver loja: <select id="selectLojaVisualizada"></select></div>
-          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelho" placeholder="Buscar por nome, IMEI, observação..." oninput="renderTabela()" /></div>
+          <div class="pill"><i class="fa-solid fa-store" style="color:var(--accent);"></i> <span id="nomeLojaAtualTabela">Minha loja</span></div>
+          <button type="button" class="btn-ghost btn-toggle-print" id="btnModoPrint" onclick="toggleModoPrint()"><i class="fa-solid fa-camera"></i> Tirar print (ocultar ações)</button>
+          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelho" placeholder="Buscar por nome, IMEI, observação..." oninput="renderTabelaLojaAtual()" /></div>
         </div>
         <div id="chipsCategoria" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+        <div class="table-wrapper" id="wrapperTabelaLojaAtual">
+          <table>
+            <thead>
+              <tr>
+                <th>Aparelho</th><th>IMEI</th><th>Armaz.</th><th>RAM</th><th>NFC</th>
+                <th>Garantia</th><th>À vista</th><th>5x</th><th>Observação</th><th>Status</th><th class="col-acoes" style="width:120px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabelaAparelhosAtual"><tr><td colspan="11" class="empty"><i class="fa-solid fa-inbox"></i>Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ABA 2: TODOS OS APARELHOS (TODAS AS LOJAS) ===== -->
+    <div class="tab-content" id="tab-todasLojas">
+      <div class="card">
+        <div class="table-toolbar">
+          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelhoTodas" placeholder="Buscar por nome, IMEI, loja, observação..." oninput="renderTabelaTodasLojas()" /></div>
+        </div>
+        <div id="chipsCategoriaTodas" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Categoria</th><th>Aparelho</th><th>IMEI</th><th>Armaz.</th><th>RAM</th><th>NFC</th>
+                <th>Loja</th><th>Aparelho</th><th>IMEI</th><th>Armaz.</th><th>RAM</th><th>NFC</th>
                 <th>Garantia</th><th>À vista</th><th>5x</th><th>Observação</th><th>Status</th><th style="width:120px;">Ações</th>
               </tr>
             </thead>
-            <tbody id="corpoTabelaAparelhos"><tr><td colspan="12" class="empty"><i class="fa-solid fa-inbox"></i>Selecione uma loja.</td></tr></tbody>
+            <tbody id="corpoTabelaAparelhosTodas"><tr><td colspan="12" class="empty"><i class="fa-solid fa-inbox"></i>Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -490,18 +518,19 @@ let currentUser = null;        // objeto do Firebase Auth
 let currentUserDoc = null;     // documento em /users/{uid}
 let isMasterUser = false;
 let myStoreId = null;          // loja do usuário logado (null para master sem loja própria)
-let tabelaLojaId = null;       // loja sendo exibida na aba "Aparelhos"
-let filtroCategoriaAtivo = 'Todas';
+let filtroCategoriaAtivo = 'Todas';       // filtro de categoria da aba "Loja Atual"
+let filtroCategoriaAtivoTodas = 'Todas';  // filtro de categoria da aba "Todos os Aparelhos"
 
 let lojasMap = {};              // { storeId: {id, name, active, ownerUid} }
-let devicesCache = [];
+let devicesCache = [];          // aparelhos da loja atual (aba 1)
+let devicesCacheTodas = [];     // aparelhos de todas as lojas (aba 2)
 let usuariosCache = [];
 let historicoCache = [];
 let transferenciasRecebidas = [];
 let transferenciasEnviadas = [];
 let vendaDeviceId = null, transferenciaDeviceId = null, editarDeviceId = null;
 
-let unsubLojas = null, unsubDevices = null, unsubUsuarios = null, unsubRecebidas = null, unsubEnviadas = null;
+let unsubLojas = null, unsubDevices = null, unsubDevicesTodas = null, unsubUsuarios = null, unsubRecebidas = null, unsubEnviadas = null;
 
 const CATEGORIAS = ['NOVO','NOVO DE VITRINE','SEMI-NOVO','OUTLET','LACRADO','USO LOJA','RASTREIO'];
 const categoriaClass = {'NOVO':'cat-novo','NOVO DE VITRINE':'cat-vitrine','SEMI-NOVO':'cat-semi','OUTLET':'cat-outlet','LACRADO':'cat-lacrado','USO LOJA':'cat-uso','RASTREIO':'cat-rastreio'};
@@ -511,6 +540,17 @@ const categoriaClass = {'NOVO':'cat-novo','NOVO DE VITRINE':'cat-vitrine','SEMI-
    ========================================================================= */
 function valor(id){ const el=document.getElementById(id); return el ? el.value.trim() : ''; }
 function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function buscarDevice(id){ return devicesCache.find(x=>x.id===id) || devicesCacheTodas.find(x=>x.id===id); }
+
+function toggleModoPrint(){
+  const wrap = document.getElementById('wrapperTabelaLojaAtual');
+  const btn = document.getElementById('btnModoPrint');
+  const ativo = wrap.classList.toggle('modo-print');
+  btn.classList.toggle('active', ativo);
+  btn.innerHTML = ativo
+    ? '<i class="fa-solid fa-eye"></i> Mostrar ações'
+    : '<i class="fa-solid fa-camera"></i> Tirar print (ocultar ações)';
+}
 
 function showToast(msg, tipo='info'){
   const cont = document.getElementById('toastContainer');
@@ -664,7 +704,6 @@ auth.onAuthStateChanged(async user=>{
 
     isMasterUser = currentUserDoc.role === 'master';
     myStoreId = currentUserDoc.storeId || null;
-    tabelaLojaId = myStoreId;
 
     document.getElementById('badgePapel').textContent = isMasterUser ? 'Master' : 'Padrão';
     document.getElementById('badgePapel').className = 'badge ' + (isMasterUser?'badge-purple':'badge-info');
@@ -673,7 +712,8 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById('wrapLojaCadastro').classList.toggle('hidden', !isMasterUser);
 
     mostrarTela('app');
-    renderChipsCategoria();
+    renderChipsCategoriaAtual();
+    renderChipsCategoriaTodas();
     iniciarListeners();
   }catch(err){
     showToast('Erro ao carregar dados do usuário: '+err.message,'error');
@@ -682,8 +722,8 @@ auth.onAuthStateChanged(async user=>{
 });
 
 function limparListeners(){
-  [unsubLojas,unsubDevices,unsubUsuarios,unsubRecebidas,unsubEnviadas].forEach(u=>{ if (u) u(); });
-  unsubLojas=unsubDevices=unsubUsuarios=unsubRecebidas=unsubEnviadas=null;
+  [unsubLojas,unsubDevices,unsubDevicesTodas,unsubUsuarios,unsubRecebidas,unsubEnviadas].forEach(u=>{ if (u) u(); });
+  unsubLojas=unsubDevices=unsubDevicesTodas=unsubUsuarios=unsubRecebidas=unsubEnviadas=null;
 }
 
 /* =========================================================================
@@ -693,10 +733,10 @@ function iniciarListeners(){
   unsubLojas = db.collection('stores').onSnapshot(snap=>{
     lojasMap = {};
     snap.forEach(doc=> lojasMap[doc.id] = { id: doc.id, ...doc.data() });
-    if (!tabelaLojaId) tabelaLojaId = myStoreId || (Object.keys(lojasMap).length ? '__todas__' : null);
     atualizarSelectsLojas();
     atualizarPillLoja();
     renderTabelaLojasAdmin();
+    renderTabelaTodasLojas();
     iniciarListenerAparelhos();
   }, err=>showToast('Erro ao carregar lojas: '+err.message,'error'));
 
@@ -714,19 +754,12 @@ function iniciarListeners(){
 function atualizarPillLoja(){
   const nome = myStoreId ? (lojasMap[myStoreId]?.name || 'Loja') : (isMasterUser ? 'Acesso master — todas as lojas' : 'Sem loja');
   document.getElementById('pillLojaAtual').textContent = nome;
+  const spanTabela = document.getElementById('nomeLojaAtualTabela');
+  if (spanTabela) spanTabela.textContent = myStoreId ? (lojasMap[myStoreId]?.name || 'Loja') : 'Sem loja associada';
 }
 
 function atualizarSelectsLojas(){
   const ativos = Object.values(lojasMap).filter(l=>l.active!==false).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  const minhaLoja = myStoreId ? ativos.find(l=>l.id===myStoreId) : null;
-  const outrasLojas = ativos.filter(l=>l.id!==myStoreId);
-
-  const optsVis = (minhaLoja ? `<option value="${minhaLoja.id}">${escapeHtml(minhaLoja.name)} (minha loja)</option>` : '')
-    + `<option value="__todas__">Todas as lojas</option>`
-    + outrasLojas.map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
-
-  const selVis = document.getElementById('selectLojaVisualizada');
-  if (selVis){ selVis.innerHTML = optsVis; selVis.value = tabelaLojaId || (minhaLoja ? minhaLoja.id : '__todas__'); }
 
   const opts = ativos.map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
   const selCad = document.getElementById('selectLojaCadastro');
@@ -735,11 +768,6 @@ function atualizarSelectsLojas(){
   const selHist = document.getElementById('selectLojaHistorico');
   if (selHist){ selHist.innerHTML = `<option value="">Todas as lojas</option>` + opts; }
 }
-
-document.getElementById('selectLojaVisualizada').addEventListener('change', e=>{
-  tabelaLojaId = e.target.value;
-  iniciarListenerAparelhos();
-});
 
 function preencherSelectLojasDestino(selectId, excluirStoreId){
   const el = document.getElementById(selectId);
@@ -782,45 +810,132 @@ document.getElementById('formAparelho').addEventListener('submit', async e=>{
    ABA APARELHOS
    ========================================================================= */
 function iniciarListenerAparelhos(){
+  // ---- Aba 1: aparelhos da loja atual ----
   if (unsubDevices) unsubDevices();
-  if (!tabelaLojaId){
+  if (!myStoreId){
     devicesCache = [];
-    renderChipsCategoria();
-    renderTabela();
+    renderChipsCategoriaAtual();
+    renderTabelaLojaAtual();
     atualizarStats();
-    return;
+  } else {
+    unsubDevices = db.collection('devices').where('storeId','==', myStoreId)
+      .onSnapshot(snap=>{
+        devicesCache = [];
+        snap.forEach(doc=> devicesCache.push({ id: doc.id, ...doc.data() }));
+        renderChipsCategoriaAtual();
+        renderTabelaLojaAtual();
+        atualizarStats();
+      }, err=>showToast('Erro ao carregar aparelhos: '+err.message,'error'));
   }
-  const query = tabelaLojaId === '__todas__'
-    ? db.collection('devices')
-    : db.collection('devices').where('storeId','==', tabelaLojaId);
-  unsubDevices = query
+
+  // ---- Aba 2: aparelhos de todas as lojas ----
+  if (unsubDevicesTodas) unsubDevicesTodas();
+  unsubDevicesTodas = db.collection('devices')
     .onSnapshot(snap=>{
-      devicesCache = [];
-      snap.forEach(doc=> devicesCache.push({ id: doc.id, ...doc.data() }));
-      renderChipsCategoria();
-      renderTabela();
-      atualizarStats();
+      devicesCacheTodas = [];
+      snap.forEach(doc=> devicesCacheTodas.push({ id: doc.id, ...doc.data() }));
+      renderChipsCategoriaTodas();
+      renderTabelaTodasLojas();
     }, err=>showToast('Erro ao carregar aparelhos: '+err.message,'error'));
 }
 
-function renderChipsCategoria(){
-  const cont = document.getElementById('chipsCategoria');
+function renderChipsCategoriaGenerico(containerId, cache, filtroAtual, chipVendidosId, onFiltrar, onToggleVendidos){
+  const cont = document.getElementById(containerId);
   if (!cont) return;
-  const mostrarVendidosAtivo = document.getElementById('chipVendidos')?.classList.contains('active') || false;
-  const presentes = CATEGORIAS.filter(c => devicesCache.some(d=>d.categoria===c));
-  if (filtroCategoriaAtivo !== 'Todas' && !presentes.includes(filtroCategoriaAtivo)) filtroCategoriaAtivo = 'Todas';
+  const mostrarVendidosAtivo = document.getElementById(chipVendidosId)?.classList.contains('active') || false;
+  const presentes = CATEGORIAS.filter(c => cache.some(d=>d.categoria===c));
   const cats = ['Todas', ...presentes];
-  cont.innerHTML = cats.map(c=>`<button type="button" class="filter-chip ${filtroCategoriaAtivo===c?'active':''}" onclick="filtrarCategoria('${c}')">${c}</button>`).join('')
-    + `<button type="button" id="chipVendidos" class="filter-chip ${mostrarVendidosAtivo?'active':''}" onclick="toggleChipVendidos(this)"><i class="fa-solid fa-eye"></i> Mostrar vendidos</button>`;
+  cont.innerHTML = cats.map(c=>`<button type="button" class="filter-chip ${filtroAtual===c?'active':''}" onclick="${onFiltrar}('${c}')">${c}</button>`).join('')
+    + `<button type="button" id="${chipVendidosId}" class="filter-chip ${mostrarVendidosAtivo?'active':''}" onclick="${onToggleVendidos}(this)"><i class="fa-solid fa-eye"></i> Mostrar vendidos</button>`;
 }
-function filtrarCategoria(c){ filtroCategoriaAtivo=c; renderChipsCategoria(); renderTabela(); }
-function toggleChipVendidos(btn){ btn.classList.toggle('active'); renderTabela(); }
 
-function renderTabela(){
+function renderChipsCategoriaAtual(){
+  if (filtroCategoriaAtivo !== 'Todas' && !devicesCache.some(d=>d.categoria===filtroCategoriaAtivo)) filtroCategoriaAtivo = 'Todas';
+  renderChipsCategoriaGenerico('chipsCategoria', devicesCache, filtroCategoriaAtivo, 'chipVendidos', 'filtrarCategoriaAtual', 'toggleChipVendidosAtual');
+}
+function filtrarCategoriaAtual(c){ filtroCategoriaAtivo=c; renderChipsCategoriaAtual(); renderTabelaLojaAtual(); }
+function toggleChipVendidosAtual(btn){ btn.classList.toggle('active'); renderTabelaLojaAtual(); }
+
+function renderChipsCategoriaTodas(){
+  if (filtroCategoriaAtivoTodas !== 'Todas' && !devicesCacheTodas.some(d=>d.categoria===filtroCategoriaAtivoTodas)) filtroCategoriaAtivoTodas = 'Todas';
+  renderChipsCategoriaGenerico('chipsCategoriaTodas', devicesCacheTodas, filtroCategoriaAtivoTodas, 'chipVendidosTodas', 'filtrarCategoriaTodas', 'toggleChipVendidosTodas');
+}
+function filtrarCategoriaTodas(c){ filtroCategoriaAtivoTodas=c; renderChipsCategoriaTodas(); renderTabelaTodasLojas(); }
+function toggleChipVendidosTodas(btn){ btn.classList.toggle('active'); renderTabelaTodasLojas(); }
+
+function linhaAparelho(d, comLoja){
+  const podeEditar = isMasterUser || d.storeId === myStoreId;
+  const statusBadge = d.status==='vendido' ? '<span class="badge badge-muted">Vendido</span>'
+    : d.status==='transfer_pendente' ? '<span class="badge badge-warning">Transf. pendente</span>'
+    : '<span class="badge badge-success">Disponível</span>';
+
+  let acoes = '<span class="texto-soft">Somente leitura</span>';
+  if (podeEditar){
+    if (d.status==='transfer_pendente'){
+      acoes = `<button class="btn-ghost btn-icon" onclick="cancelarTransferencia('${d.pendingTransferId}')" title="Cancelar transferência"><i class="fa-solid fa-ban"></i></button>`;
+    } else {
+      acoes = `<div class="acao-select-wrap"><select class="select-acao" onchange="acaoAparelho(this,'${d.id}')">
+        <option value="">Ações</option>
+        <option value="vender">Vender</option>
+        <option value="transferir">Transferir</option>
+        <option value="editar">Editar</option>
+        <option value="excluir">Excluir</option>
+      </select></div>`;
+    }
+  }
+
+  const lojaCell = comLoja ? `<td>${escapeHtml(lojasMap[d.storeId]?.name || '—')}</td>` : '';
+
+  return `<tr>
+    ${lojaCell}
+    <td><strong>${escapeHtml(d.nome||'')}</strong></td>
+    <td class="imei-cell">${escapeHtml(d.imei||'—')}</td>
+    <td>${escapeHtml(d.armazenamento||'—')}</td>
+    <td>${escapeHtml(d.ram||'—')}</td>
+    <td>${d.nfc==='Sim' ? '<span class="nfc-yes">Sim</span>' : '<span class="nfc-no">Não</span>'}</td>
+    <td>${escapeHtml(d.garantia||'—')}</td>
+    <td class="price-cell">${escapeHtml(d.avista||'—')}</td>
+    <td class="price-cell">${escapeHtml(d.cinco||'—')}</td>
+    <td class="cell-observacao" title="${escapeHtml(d.observacao||'')}">${escapeHtml(d.observacao||'—')}</td>
+    <td>${statusBadge}</td>
+    <td class="col-acoes">${acoes}</td>
+  </tr>`;
+}
+
+function renderTabelaAgrupadaPorCategoria(tbodyId, lista, colspan, comLoja){
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  if (lista.length===0){
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty"><i class="fa-solid fa-inbox"></i>Nenhum aparelho encontrado.</td></tr>`;
+    return;
+  }
+
+  const presentes = CATEGORIAS.filter(c=>lista.some(d=>d.categoria===c));
+  const extras = [...new Set(lista.map(d=>d.categoria).filter(c=>c && !CATEGORIAS.includes(c)))].sort();
+  const grupos = [...presentes, ...extras];
+
+  let html = '';
+  grupos.forEach(cat=>{
+    const itens = lista.filter(d=>d.categoria===cat);
+    if (!itens.length) return;
+    html += `<tr class="categoria-group-header"><td colspan="${colspan}"><span class="category-badge ${categoriaClass[cat]||''}">${escapeHtml(cat)}</span> <span style="opacity:.65;">(${itens.length})</span></td></tr>`;
+    html += itens.map(d=>linhaAparelho(d, comLoja)).join('');
+  });
+
+  const semCategoria = lista.filter(d=>!d.categoria);
+  if (semCategoria.length){
+    html += `<tr class="categoria-group-header"><td colspan="${colspan}">Sem categoria <span style="opacity:.65;">(${semCategoria.length})</span></td></tr>`;
+    html += semCategoria.map(d=>linhaAparelho(d, comLoja)).join('');
+  }
+
+  tbody.innerHTML = html;
+}
+
+function renderTabelaLojaAtual(){
   const busca = (document.getElementById('buscaAparelho')?.value||'').toLowerCase().trim();
   const mostrarVendidos = document.getElementById('chipVendidos')?.classList.contains('active');
 
-  let lista = devicesCache.filter(d=>{
+  const lista = devicesCache.filter(d=>{
     if (!mostrarVendidos && d.status==='vendido') return false;
     if (filtroCategoriaAtivo !== 'Todas' && d.categoria !== filtroCategoriaAtivo) return false;
     if (busca){
@@ -830,48 +945,24 @@ function renderTabela(){
     return true;
   });
 
-  const tbody = document.getElementById('corpoTabelaAparelhos');
-  if (lista.length===0){
-    tbody.innerHTML = `<tr><td colspan="12" class="empty"><i class="fa-solid fa-inbox"></i>Nenhum aparelho encontrado.</td></tr>`;
-    return;
-  }
+  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosAtual', lista, 11, false);
+}
 
-  tbody.innerHTML = lista.map(d=>{
-    const podeEditar = isMasterUser || d.storeId === myStoreId;
-    const statusBadge = d.status==='vendido' ? '<span class="badge badge-muted">Vendido</span>'
-      : d.status==='transfer_pendente' ? '<span class="badge badge-warning">Transf. pendente</span>'
-      : '<span class="badge badge-success">Disponível</span>';
+function renderTabelaTodasLojas(){
+  const busca = (document.getElementById('buscaAparelhoTodas')?.value||'').toLowerCase().trim();
+  const mostrarVendidos = document.getElementById('chipVendidosTodas')?.classList.contains('active');
 
-    let acoes = '<span class="texto-soft">Somente leitura</span>';
-    if (podeEditar){
-      if (d.status==='transfer_pendente'){
-        acoes = `<button class="btn-ghost btn-icon" onclick="cancelarTransferencia('${d.pendingTransferId}')" title="Cancelar transferência"><i class="fa-solid fa-ban"></i></button>`;
-      } else {
-        acoes = `<div class="acao-select-wrap"><select class="select-acao" onchange="acaoAparelho(this,'${d.id}')">
-          <option value="">Ações</option>
-          <option value="vender">Vender</option>
-          <option value="transferir">Transferir</option>
-          <option value="editar">Editar</option>
-          <option value="excluir">Excluir</option>
-        </select></div>`;
-      }
+  const lista = devicesCacheTodas.filter(d=>{
+    if (!mostrarVendidos && d.status==='vendido') return false;
+    if (filtroCategoriaAtivoTodas !== 'Todas' && d.categoria !== filtroCategoriaAtivoTodas) return false;
+    if (busca){
+      const alvo = [d.nome,d.imei,d.observacao,d.garantia,lojasMap[d.storeId]?.name].filter(Boolean).join(' ').toLowerCase();
+      if (!alvo.includes(busca)) return false;
     }
+    return true;
+  });
 
-    return `<tr>
-      <td><span class="category-badge ${categoriaClass[d.categoria]||''}">${escapeHtml(d.categoria||'—')}</span></td>
-      <td><strong>${escapeHtml(d.nome||'')}</strong></td>
-      <td class="imei-cell">${escapeHtml(d.imei||'—')}</td>
-      <td>${escapeHtml(d.armazenamento||'—')}</td>
-      <td>${escapeHtml(d.ram||'—')}</td>
-      <td>${d.nfc==='Sim' ? '<span class="nfc-yes">Sim</span>' : '<span class="nfc-no">Não</span>'}</td>
-      <td>${escapeHtml(d.garantia||'—')}</td>
-      <td class="price-cell">${escapeHtml(d.avista||'—')}</td>
-      <td class="price-cell">${escapeHtml(d.cinco||'—')}</td>
-      <td class="cell-observacao" title="${escapeHtml(d.observacao||'')}">${escapeHtml(d.observacao||'—')}</td>
-      <td>${statusBadge}</td>
-      <td>${acoes}</td>
-    </tr>`;
-  }).join('');
+  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosTodas', lista, 12, true);
 }
 
 function acaoAparelho(select, deviceId){
@@ -915,7 +1006,7 @@ function abrirVenda(deviceId){
   abrirPainel('boxVenda');
 }
 async function confirmarVenda(){
-  const d = devicesCache.find(x=>x.id===vendaDeviceId);
+  const d = buscarDevice(vendaDeviceId);
   if (!d) return;
   const cliente=valor('vendaCliente'), cpf=valor('vendaCpfCnpj'), tel=valor('vendaTelefone'), vendedor=valor('vendaVendedor'),
         numeroPedido=valor('vendaNumeroPedido'), numeroCcb=valor('vendaNumeroCcb');
@@ -932,7 +1023,7 @@ async function confirmarVenda(){
    TRANSFERÊNCIA
    ========================================================================= */
 function abrirTransferencia(deviceId){
-  const d = devicesCache.find(x=>x.id===deviceId);
+  const d = buscarDevice(deviceId);
   if (!d) return;
   transferenciaDeviceId = deviceId;
   document.getElementById('transfDeviceInfo').textContent = `${d.nome} · IMEI ${d.imei||'—'}`;
@@ -947,7 +1038,7 @@ async function confirmarTransferencia(){
   const vendedor = valor('transfVendedor');
   const entregador = valor('transfEntregador');
   if (!destStoreId || !vendedor || !entregador){ showToast('Preencha todos os campos.','warning'); return; }
-  const d = devicesCache.find(x=>x.id===transferenciaDeviceId);
+  const d = buscarDevice(transferenciaDeviceId);
   if (!d) return;
   const originStoreId = d.storeId;
   try{
@@ -1091,7 +1182,7 @@ function renderTransferenciasEnviadas(){
    EDITAR / EXCLUIR
    ========================================================================= */
 function abrirEditar(deviceId){
-  const d = devicesCache.find(x=>x.id===deviceId);
+  const d = buscarDevice(deviceId);
   if (!d) return;
   editarDeviceId = deviceId;
   document.getElementById('editarNome').value = d.nome||'';
@@ -1118,8 +1209,9 @@ async function salvarEdicao(){
     observacao: valor('editarObservacao'), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try{
+    const original = buscarDevice(editarDeviceId);
     await db.collection('devices').doc(editarDeviceId).update(dados);
-    await registrarHistorico([tabelaLojaId], 'Edição', dados, `Dados do aparelho "${dados.nome}" atualizados.`);
+    await registrarHistorico([original?.storeId].filter(Boolean), 'Edição', dados, `Dados do aparelho "${dados.nome}" atualizados.`);
     fecharPainel();
     showToast('Aparelho atualizado!','success');
   }catch(err){ showToast('Erro: '+err.message,'error'); }
@@ -1127,7 +1219,7 @@ async function salvarEdicao(){
 
 async function excluirAparelho(deviceId){
   if (!confirm('Deseja excluir este aparelho da lista?')) return;
-  const d = devicesCache.find(x=>x.id===deviceId);
+  const d = buscarDevice(deviceId);
   if (!d) return;
   try{
     await db.collection('devices').doc(deviceId).delete();

@@ -288,6 +288,7 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById('emailUsuario').textContent = currentUser.email;
     document.querySelectorAll('[data-master-only]').forEach(el=> el.classList.toggle('hidden', !isMasterUser));
     document.getElementById('wrapLojaCadastro').classList.toggle('hidden', !isMasterUser);
+    document.getElementById('btnEditarNomeLoja').classList.toggle('hidden', !myStoreId);
 
     mostrarTela('app');
     renderChipsCategoriaAtual();
@@ -457,6 +458,7 @@ function linhaAparelho(d, comLoja, comAcoes){
           <option value="vender">Vender</option>
           <option value="transferir">Transferir</option>
           <option value="editar">Editar</option>
+          <option value="copiar">Copiar informações</option>
           <option value="excluir">Excluir</option>
         </select></div>`;
       }
@@ -561,6 +563,7 @@ function acaoAparelho(select, deviceId){
   if (val==='vender') abrirVenda(deviceId);
   else if (val==='transferir') abrirTransferencia(deviceId);
   else if (val==='editar') abrirEditar(deviceId);
+  else if (val==='copiar') copiarInfoAparelho(deviceId);
   else if (val==='excluir') excluirAparelho(deviceId);
 }
 
@@ -819,6 +822,25 @@ async function excluirAparelho(deviceId){
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
 
+function copiarInfoAparelho(deviceId){
+  const d = buscarDevice(deviceId);
+  if (!d) return;
+  const texto = [
+    `Produto: ${d.nome||'—'}`,
+    `Qualidade: ${d.categoria||'—'}`,
+    `Armazenamento: ${d.armazenamento||'—'}`,
+    `Memoria Ram: ${d.ram||'—'}`,
+    `Garantia: ${d.garantia||'—'}`,
+    `Avista: ${d.avista||'—'}`,
+    `5x: ${d.cinco||'—'}`,
+    `10x: ${d.dez||'—'}`,
+    `18x: ${d.dezoito||'—'}`
+  ].join('\n');
+  navigator.clipboard.writeText(texto)
+    .then(()=>showToast('Informações copiadas!','success'))
+    .catch(err=>showToast('Erro ao copiar: '+err.message,'error'));
+}
+
 /* =========================================================================
    ABA HISTÓRICO
    ========================================================================= */
@@ -915,6 +937,10 @@ async function renomearLoja(storeId){
   if (novoNome===null || !novoNome.trim()) return;
   try{ await db.collection('stores').doc(storeId).update({ name: novoNome.trim() }); showToast('Loja atualizada.','success'); }
   catch(err){ showToast('Erro: '+err.message,'error'); }
+}
+async function abrirEdicaoNomeLoja(){
+  if (!myStoreId){ showToast('Você não está associado a nenhuma loja.','warning'); return; }
+  await renomearLoja(myStoreId);
 }
 async function alternarAtivaLoja(storeId){
   const atual = lojasMap[storeId]?.active !== false;

@@ -13,6 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <link rel="stylesheet" href="styles.css">
@@ -146,6 +147,12 @@
             <div class="field"><label>Valor em 10x</label><input id="dez" type="text" placeholder="R$" /></div>
             <div class="field"><label>Valor em 18x</label><input id="dezoito" type="text" placeholder="R$" /></div>
             <div class="field full-row"><label>Observação</label><textarea id="observacao" placeholder="Detalhes adicionais..."></textarea></div>
+            <div class="field full-row">
+              <label>Fotos do aparelho (até 10)</label>
+              <input type="file" id="fotosCadastro" accept="image/*" multiple onchange="selecionarFotosCadastro(this)" />
+              <div class="contador-fotos" id="contadorFotosCadastro">0/10 fotos selecionadas</div>
+              <div class="fotos-preview-grid" id="previewFotosCadastro"></div>
+            </div>
           </div>
           <div class="actions">
             <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Cadastrar aparelho</button>
@@ -321,6 +328,20 @@
     <div class="painel-actions">
       <button class="btn-primary" onclick="salvarEdicao()"><i class="fa-solid fa-check"></i> Salvar alterações</button>
       <button class="btn-ghost" onclick="fecharPainel()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="painel-box" id="boxFotos" style="display:none;">
+    <div class="painel-header"><h2><i class="fa-solid fa-images"></i> Fotos do aparelho</h2><button class="painel-close" onclick="fecharPainel()"><i class="fa-solid fa-xmark"></i></button></div>
+    <p class="texto-soft" id="fotosDeviceInfo" style="font-style:normal;color:var(--text-muted);"></p>
+    <div class="contador-fotos" id="contadorFotos">0/10 fotos</div>
+    <div class="fotos-preview-grid" id="gridFotosAparelho"></div>
+    <div class="field" id="wrapAdicionarFotos">
+      <label>Adicionar fotos</label>
+      <input type="file" id="inputAdicionarFotos" accept="image/*" multiple onchange="adicionarFotosDevice(this)" />
+    </div>
+    <div class="painel-actions">
+      <button class="btn-ghost" onclick="fecharPainel()">Fechar</button>
     </div>
   </div>
 

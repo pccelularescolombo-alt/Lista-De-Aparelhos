@@ -515,8 +515,8 @@ function renderChipsCategoriaTodas(){
 function filtrarCategoriaTodas(c){ filtroCategoriaAtivoTodas=c; renderChipsCategoriaTodas(); renderTabelaTodasLojas(); }
 function toggleChipVendidosTodas(btn){ btn.classList.toggle('active'); renderTabelaTodasLojas(); }
 
-function linhaAparelho(d, comLoja, comAcoes){
-  const podeEditar = isMasterUser || d.storeId === myStoreId;
+function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
+  const podeEditar = !apenasConsulta && (isMasterUser || d.storeId === myStoreId);
   const statusBadge = d.status==='vendido' ? '<span class="badge badge-muted">Vendido</span>'
     : d.status==='transfer_pendente' ? '<span class="badge badge-warning">Transf. pendente</span>'
     : '<span class="badge badge-success">Disponível</span>';
@@ -575,7 +575,7 @@ function theadAparelhos(comLoja, comAcoes){
     <th>Garantia</th><th>À vista</th><th>5x</th><th>10x</th><th>18x</th><th>Observação</th><th>Status</th>${acoesTh}</tr>`;
 }
 
-function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes){
+function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes, apenasConsulta){
   const cont = document.getElementById(containerId);
   if (!cont) return;
   if (lista.length===0){
@@ -593,7 +593,7 @@ function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes)
     if (!itens.length) return;
     html += `<div class="subtabela-categoria ${categoriaRowClass[cat]||''}">
       <div class="subtabela-header"><span class="category-badge ${categoriaClass[cat]||''}">${escapeHtml(cat)}</span> <span class="subtabela-count">(${itens.length})</span></div>
-      <table><thead>${theadAparelhos(comLoja, comAcoes)}</thead><tbody>${itens.map(d=>linhaAparelho(d, comLoja, comAcoes)).join('')}</tbody></table>
+      <table><thead>${theadAparelhos(comLoja, comAcoes)}</thead><tbody>${itens.map(d=>linhaAparelho(d, comLoja, comAcoes, apenasConsulta)).join('')}</tbody></table>
     </div>`;
   });
 
@@ -601,7 +601,7 @@ function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes)
   if (semCategoria.length){
     html += `<div class="subtabela-categoria">
       <div class="subtabela-header">Sem categoria <span class="subtabela-count">(${semCategoria.length})</span></div>
-      <table><thead>${theadAparelhos(comLoja, comAcoes)}</thead><tbody>${semCategoria.map(d=>linhaAparelho(d, comLoja, comAcoes)).join('')}</tbody></table>
+      <table><thead>${theadAparelhos(comLoja, comAcoes)}</thead><tbody>${semCategoria.map(d=>linhaAparelho(d, comLoja, comAcoes, apenasConsulta)).join('')}</tbody></table>
     </div>`;
   }
 
@@ -621,7 +621,7 @@ function renderTabelaLojaAtual(){
     return true;
   });
 
-  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosAtual', lista, false, true);
+  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosAtual', lista, false, true, false);
 }
 
 function renderTabelaTodasLojas(){
@@ -637,7 +637,7 @@ function renderTabelaTodasLojas(){
     return true;
   });
 
-  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosTodas', lista, true, true);
+  renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosTodas', lista, true, true, true);
 }
 
 function acaoAparelho(select, deviceId){

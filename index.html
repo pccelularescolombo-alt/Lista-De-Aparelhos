@@ -338,9 +338,11 @@
     <div class="fotos-preview-grid" id="gridFotosAparelho"></div>
     <div class="field" id="wrapAdicionarFotos">
       <label>Adicionar fotos</label>
-      <input type="file" id="inputAdicionarFotos" accept="image/*" multiple onchange="adicionarFotosDevice(this)" />
+      <input type="file" id="inputAdicionarFotos" accept="image/*" multiple onchange="selecionarFotosAdicionar(this)" />
+      <div class="fotos-preview-grid" id="previewFotosAdicionar"></div>
     </div>
     <div class="painel-actions">
+      <button class="btn-primary hidden" id="btnSalvarFotos" onclick="salvarFotosAdicionadas()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar fotos</button>
       <button class="btn-ghost" onclick="fecharPainel()">Fechar</button>
     </div>
   </div>

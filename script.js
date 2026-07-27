@@ -34,6 +34,7 @@ let transferenciasEnviadas = [];
 let vendaDeviceId = null, transferenciaDeviceId = null, editarDeviceId = null;
 let fotosDeviceId = null, fotosModoEdicao = false;
 let fotosParaCadastro = [];       // arquivos (File) selecionados no cadastro, antes de o aparelho existir
+let fotosParaAdicionar = [];      // arquivos (File) selecionados na tela de fotos, antes de salvar
 const MAX_FOTOS_APARELHO = 10;
 
 let unsubLojas = null, unsubDevices = null, unsubDevicesTodas = null, unsubUsuarios = null, unsubRecebidas = null, unsubEnviadas = null;
@@ -76,16 +77,16 @@ function buscarDevice(id){ return devicesCache.find(x=>x.id===id) || devicesCach
    UPLOAD DE FOTOS (Firebase Storage)
    ========================================================================= */
 async function uploadFotosAparelho(deviceId, arquivos){
-  const resultados = [];
-  for (const file of arquivos){
+  // Envia todas as fotos em paralelo (mais rápido e evita a sensação de "travado" ao enviar várias fotos).
+  const uploads = arquivos.map(async file=>{
     const nomeArquivo = `${Date.now()}_${Math.random().toString(36).slice(2,8)}_${file.name}`.replace(/[^\w.\-]/g,'_');
     const path = `devices/${deviceId}/${nomeArquivo}`;
     const ref = storage.ref(path);
     await ref.put(file);
     const url = await ref.getDownloadURL();
-    resultados.push({ url, path });
-  }
-  return resultados;
+    return { url, path };
+  });
+  return Promise.all(uploads);
 }
 
 /* =========================================================================
@@ -942,11 +943,13 @@ function abrirFotos(deviceId, modoEdicao){
   if (!d) return;
   fotosDeviceId = deviceId;
   fotosModoEdicao = !!modoEdicao;
+  fotosParaAdicionar = [];
   document.getElementById('fotosDeviceInfo').textContent = `${d.nome||''} · IMEI ${d.imei||'—'}`;
   document.getElementById('wrapAdicionarFotos').classList.toggle('hidden', !fotosModoEdicao);
   const inputAdicionar = document.getElementById('inputAdicionarFotos');
   if (inputAdicionar) inputAdicionar.value = '';
   renderGridFotos();
+  renderPreviewFotosAdicionar();
   abrirPainel('boxFotos');
 }
 
@@ -983,28 +986,68 @@ async function removerFoto(index){
   }catch(err){ showToast('Erro ao remover foto: '+err.message,'error'); }
 }
 
-async function adicionarFotosDevice(inputEl){
+function selecionarFotosAdicionar(inputEl){
   const d = buscarDevice(fotosDeviceId);
-  if (!d){ inputEl.value=''; return; }
-  const atuais = d.fotos || [];
-  const espaco = MAX_FOTOS_APARELHO - atuais.length;
-  if (espaco<=0){ showToast(`Este aparelho já possui o máximo de ${MAX_FOTOS_APARELHO} fotos.`,'warning'); inputEl.value=''; return; }
-  const arquivos = Array.from(inputEl.files).slice(0, espaco);
-  if (arquivos.length===0){ inputEl.value=''; return; }
-  if (inputEl.files.length > espaco){
-    showToast(`Só havia espaço para mais ${espaco} foto(s). O restante não foi enviado.`,'warning');
+  const atuais = (d && d.fotos) || [];
+  const espaco = MAX_FOTOS_APARELHO - atuais.length - fotosParaAdicionar.length;
+  const escolhidos = Array.from(inputEl.files);
+  if (escolhidos.length > espaco){
+    showToast(espaco>0
+      ? `Você pode adicionar no máximo ${MAX_FOTOS_APARELHO} fotos por aparelho. Foram selecionadas apenas ${espaco}.`
+      : `Limite de ${MAX_FOTOS_APARELHO} fotos já atingido.`, 'warning');
   }
-  inputEl.disabled = true;
-  showToast('Enviando fotos...','info');
+  fotosParaAdicionar.push(...escolhidos.slice(0, Math.max(espaco,0)));
+  inputEl.value = '';
+  renderPreviewFotosAdicionar();
+}
+
+function removerFotoParaAdicionar(index){
+  fotosParaAdicionar.splice(index,1);
+  renderPreviewFotosAdicionar();
+}
+
+function renderPreviewFotosAdicionar(){
+  const cont = document.getElementById('previewFotosAdicionar');
+  const btnSalvar = document.getElementById('btnSalvarFotos');
+  if (!cont) return;
+  cont.innerHTML = fotosParaAdicionar.map((f,i)=>`
+    <div class="foto-thumb">
+      <img src="${URL.createObjectURL(f)}" />
+      <button type="button" class="foto-remover" onclick="removerFotoParaAdicionar(${i})" title="Remover"><i class="fa-solid fa-xmark"></i></button>
+    </div>`).join('');
+  if (btnSalvar) btnSalvar.classList.toggle('hidden', fotosParaAdicionar.length===0);
+  const d = buscarDevice(fotosDeviceId);
+  const atuais = (d && d.fotos) || [];
+  const inputAdicionar = document.getElementById('inputAdicionarFotos');
+  if (inputAdicionar) inputAdicionar.disabled = (atuais.length + fotosParaAdicionar.length) >= MAX_FOTOS_APARELHO;
+}
+
+async function salvarFotosAdicionadas(){
+  const d = buscarDevice(fotosDeviceId);
+  if (!d || fotosParaAdicionar.length===0) return;
+  const btnSalvar = document.getElementById('btnSalvarFotos');
+  const textoOriginal = btnSalvar ? btnSalvar.innerHTML : '';
+  const arquivos = [...fotosParaAdicionar];
+  if (btnSalvar){ btnSalvar.disabled = true; btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)...`; }
+  const inputAdicionar = document.getElementById('inputAdicionarFotos');
+  if (inputAdicionar) inputAdicionar.disabled = true;
   try{
+    const atuais = d.fotos || [];
     const novas = await uploadFotosAparelho(fotosDeviceId, arquivos);
     const todasFotos = [...atuais, ...novas];
     await db.collection('devices').doc(fotosDeviceId).update({ fotos: todasFotos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     d.fotos = todasFotos;
+    fotosParaAdicionar = [];
     renderGridFotos();
-    showToast('Fotos adicionadas!','success');
-  }catch(err){ showToast('Erro ao enviar fotos: '+err.message,'error'); }
-  finally{ inputEl.value=''; inputEl.disabled = (d.fotos||[]).length >= MAX_FOTOS_APARELHO; }
+    renderPreviewFotosAdicionar();
+    showToast('Fotos salvas! Já estão visíveis para todas as lojas.','success');
+  }catch(err){
+    showToast('Erro ao salvar fotos: '+err.message,'error');
+  }finally{
+    if (btnSalvar){ btnSalvar.disabled = false; btnSalvar.innerHTML = textoOriginal || '<i class="fa-solid fa-cloud-arrow-up"></i> Salvar fotos'; }
+    const dAtual = buscarDevice(fotosDeviceId);
+    if (inputAdicionar) inputAdicionar.disabled = ((dAtual && dAtual.fotos) || []).length >= MAX_FOTOS_APARELHO;
+  }
 }
 
 /* =========================================================================

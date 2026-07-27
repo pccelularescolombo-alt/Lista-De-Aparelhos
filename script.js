@@ -5,14 +5,12 @@ const firebaseConfig = {
   apiKey: "AIzaSyCdmEqPzZDR0uxZ-_l8UhiV2eSOYNr5PaM",
   authDomain: "lista-de-aparelhos.firebaseapp.com",
   projectId: "lista-de-aparelhos",
-  storageBucket: "lista-de-aparelhos.firebasestorage.app",
   messagingSenderId: "67152136182",
   appId: "1:67152136182:web:6f92152c7a5e01ba2069d7"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 /* =========================================================================
    ESTADO GLOBAL
@@ -32,10 +30,6 @@ let historicoCache = [];
 let transferenciasRecebidas = [];
 let transferenciasEnviadas = [];
 let vendaDeviceId = null, transferenciaDeviceId = null, editarDeviceId = null;
-let fotosDeviceId = null, fotosModoEdicao = false;
-let fotosParaCadastro = [];       // arquivos (File) selecionados no cadastro, antes de o aparelho existir
-let fotosParaAdicionar = [];      // arquivos (File) selecionados na tela de fotos, antes de salvar
-const MAX_FOTOS_APARELHO = 10;
 
 let unsubLojas = null, unsubDevices = null, unsubDevicesTodas = null, unsubUsuarios = null, unsubRecebidas = null, unsubEnviadas = null;
 
@@ -72,79 +66,6 @@ function formatarProdutoDetalhe(d){
 function valor(id){ const el=document.getElementById(id); return el ? el.value.trim() : ''; }
 function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function buscarDevice(id){ return devicesCache.find(x=>x.id===id) || devicesCacheTodas.find(x=>x.id===id); }
-
-/* =========================================================================
-   UPLOAD DE FOTOS (Firebase Storage)
-   ========================================================================= */
-// Reduz o tamanho da imagem antes de enviar (fotos de celular costumam vir com
-// vários MB, o que deixa o envio extremamente lento em redes fracas). Isso
-// evita a sensação de "travado no infinito" ao enviar fotos grandes.
-async function comprimirImagem(file){
-  if (!file.type || !file.type.startsWith('image/')) return file;
-  try{
-    const bitmap = await createImageBitmap(file);
-    const MAX_DIM = 1600;
-    let { width, height } = bitmap;
-    if (width > MAX_DIM || height > MAX_DIM){
-      const escala = Math.min(MAX_DIM / width, MAX_DIM / height);
-      width = Math.round(width * escala);
-      height = Math.round(height * escala);
-    }
-    const canvas = document.createElement('canvas');
-    canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
-    if (blob && blob.size < file.size) return blob;
-    return file;
-  }catch(err){
-    console.warn('Não foi possível comprimir a imagem, enviando original:', err);
-    return file;
-  }
-}
-
-// Envia um único arquivo com progresso real e timeout de segurança (evita
-// ficar "carregando para sempre" caso a rede trave no meio do envio).
-function enviarArquivoComTimeout(ref, arquivo, onProgress, timeoutMs = 60000){
-  return new Promise((resolve, reject)=>{
-    const tarefa = ref.put(arquivo, { contentType: arquivo.type || 'application/octet-stream' });
-    const timer = setTimeout(()=>{
-      tarefa.cancel();
-      reject(new Error('O envio da foto demorou demais e foi cancelado. Verifique sua conexão com a internet e tente novamente.'));
-    }, timeoutMs);
-    tarefa.on('state_changed',
-      snap=>{
-        if (onProgress && snap.totalBytes){
-          onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100));
-        }
-      },
-      err=>{ clearTimeout(timer); reject(err); },
-      ()=>{ clearTimeout(timer); resolve(); }
-    );
-  });
-}
-
-async function uploadFotosAparelho(deviceId, arquivos, onProgressGeral){
-  const progresso = new Array(arquivos.length).fill(0);
-  const notificarProgresso = (idx, pct)=>{
-    progresso[idx] = pct;
-    if (onProgressGeral){
-      const media = Math.round(progresso.reduce((a,b)=>a+b,0) / progresso.length);
-      onProgressGeral(media);
-    }
-  };
-  // Envia todas as fotos em paralelo (mais rápido e evita a sensação de "travado" ao enviar várias fotos).
-  const uploads = arquivos.map(async (file, idx)=>{
-    const arquivoFinal = await comprimirImagem(file);
-    const nomeArquivo = `${Date.now()}_${Math.random().toString(36).slice(2,8)}_${file.name}`.replace(/[^\w.\-]/g,'_');
-    const path = `devices/${deviceId}/${nomeArquivo}`;
-    const ref = storage.ref(path);
-    await enviarArquivoComTimeout(ref, arquivoFinal, pct=>notificarProgresso(idx, pct));
-    const url = await ref.getDownloadURL();
-    return { url, path };
-  });
-  return Promise.all(uploads);
-}
 
 /* =========================================================================
    MÁSCARA DE MOEDA (R$) — identifica ponto/vírgula e formata em tempo real
@@ -291,7 +212,6 @@ function toggleFormCadastro(){
 function fecharFormCadastro(){
   document.getElementById('cardCadastroAparelho').classList.add('hidden');
   document.getElementById('formAparelho').reset();
-  limparFotosCadastro();
 }
 
 function abrirPainel(boxId){
@@ -444,39 +364,6 @@ function preencherSelectLojasDestino(selectId, excluirStoreId){
 /* =========================================================================
    ABA CADASTRAR
    ========================================================================= */
-function selecionarFotosCadastro(inputEl){
-  const espaco = MAX_FOTOS_APARELHO - fotosParaCadastro.length;
-  const escolhidos = Array.from(inputEl.files);
-  if (escolhidos.length > espaco){
-    showToast(espaco>0
-      ? `Você pode adicionar no máximo ${MAX_FOTOS_APARELHO} fotos. Foram adicionadas apenas ${espaco}.`
-      : `Limite de ${MAX_FOTOS_APARELHO} fotos já atingido.`, 'warning');
-  }
-  fotosParaCadastro.push(...escolhidos.slice(0, Math.max(espaco,0)));
-  inputEl.value = '';
-  renderPreviewFotosCadastro();
-}
-function removerFotoCadastro(index){
-  fotosParaCadastro.splice(index,1);
-  renderPreviewFotosCadastro();
-}
-function renderPreviewFotosCadastro(){
-  const cont = document.getElementById('previewFotosCadastro');
-  document.getElementById('contadorFotosCadastro').textContent = `${fotosParaCadastro.length}/${MAX_FOTOS_APARELHO} fotos selecionadas`;
-  const input = document.getElementById('fotosCadastro');
-  if (input) input.disabled = fotosParaCadastro.length >= MAX_FOTOS_APARELHO;
-  cont.innerHTML = fotosParaCadastro.map((f,i)=>`
-    <div class="foto-thumb">
-      <img src="${URL.createObjectURL(f)}" />
-      <button type="button" class="foto-remover" onclick="removerFotoCadastro(${i})" title="Remover"><i class="fa-solid fa-xmark"></i></button>
-    </div>`).join('');
-}
-function limparFotosCadastro(){
-  fotosParaCadastro = [];
-  const input = document.getElementById('fotosCadastro');
-  if (input){ input.value=''; input.disabled=false; }
-  renderPreviewFotosCadastro();
-}
 
 document.getElementById('formAparelho').addEventListener('submit', async e=>{
   e.preventDefault();
@@ -492,7 +379,7 @@ document.getElementById('formAparelho').addEventListener('submit', async e=>{
     ram: valorSelectOuManual('ram'),
     nfc: valor('nfc'), garantia: valor('garantia'), categoria: valor('categoria') || 'NOVO',
     avista: valor('avista'), cinco: valor('cinco'), dez: valor('dez'), dezoito: valor('dezoito'),
-    observacao: valor('observacao'), fotos: [],
+    observacao: valor('observacao'),
     status: 'disponivel', pendingDestStoreId: null, pendingTransferId: null,
     createdByUid: currentUser.uid, createdByEmail: currentUser.email,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -501,18 +388,9 @@ document.getElementById('formAparelho').addEventListener('submit', async e=>{
 
   const btnSubmit = e.target.querySelector('button[type="submit"]');
   const textoOriginalBtn = btnSubmit.innerHTML;
-  const fotosSelecionadas = [...fotosParaCadastro];
   btnSubmit.disabled = true;
   try{
-    if (fotosSelecionadas.length) btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cadastrando...';
     const docRef = await db.collection('devices').add(dados);
-    if (fotosSelecionadas.length){
-      btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando fotos... 0%';
-      const fotos = await uploadFotosAparelho(docRef.id, fotosSelecionadas, pct=>{
-        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando fotos... ${pct}%`;
-      });
-      await docRef.update({ fotos });
-    }
     await registrarHistorico([lojaAlvo], 'Cadastro', dados, `Aparelho cadastrado: ${nome}`);
     fecharFormCadastro();
     showToast('Aparelho cadastrado!','success');
@@ -530,7 +408,6 @@ function iniciarListenerAparelhos(){
     devicesCache = [];
     renderChipsCategoriaAtual();
     renderTabelaLojaAtual();
-    atualizarStats();
   } else {
     unsubDevices = db.collection('devices').where('storeId','==', myStoreId)
       .onSnapshot(snap=>{
@@ -538,7 +415,6 @@ function iniciarListenerAparelhos(){
         snap.forEach(doc=> devicesCache.push({ id: doc.id, ...doc.data() }));
         renderChipsCategoriaAtual();
         renderTabelaLojaAtual();
-        atualizarStats();
       }, err=>showToast('Erro ao carregar aparelhos: '+err.message,'error'));
   }
 
@@ -576,41 +452,15 @@ function filtrarCategoriaTodas(c){ filtroCategoriaAtivoTodas=c; renderChipsCateg
 function toggleChipVendidosTodas(btn){ btn.classList.toggle('active'); renderTabelaTodasLojas(); }
 
 function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
-  const podeEditar = !apenasConsulta && (isMasterUser || d.storeId === myStoreId);
   const statusBadge = d.status==='vendido' ? '<span class="badge badge-muted">Vendido</span>'
     : d.status==='transfer_pendente' ? '<span class="badge badge-warning">Transf. pendente</span>'
     : '<span class="badge badge-success">Disponível</span>';
 
-  let acaoCell = '';
-  if (comAcoes){
-    let acoes;
-    if (podeEditar){
-      if (d.status==='transfer_pendente'){
-        acoes = `<button class="btn-ghost btn-icon" onclick="cancelarTransferencia('${d.pendingTransferId}')" title="Cancelar transferência"><i class="fa-solid fa-ban"></i></button>`;
-      } else {
-        acoes = `<div class="acao-select-wrap"><select class="select-acao" onchange="acaoAparelho(this,'${d.id}')">
-          <option value="">Ações</option>
-          <option value="vender">Vender</option>
-          <option value="transferir">Transferir</option>
-          <option value="editar">Editar</option>
-          <option value="fotos">Fotos do aparelho</option>
-          <option value="copiar">Copiar informações</option>
-          <option value="excluir">Excluir</option>
-        </select></div>`;
-      }
-    } else {
-      acoes = `<div class="acao-select-wrap"><select class="select-acao" onchange="acaoAparelho(this,'${d.id}')">
-        <option value="">Ações</option>
-        <option value="copiar">Copiar informações</option>
-        <option value="verFotos">Ver fotos</option>
-      </select></div>`;
-    }
-    acaoCell = `<td class="col-acoes">${acoes}</td>`;
-  }
-
   const lojaCell = comLoja ? `<td>${escapeHtml(lojasMap[d.storeId]?.name || '—')}</td>` : '';
+  const onclickAttr = comAcoes ? ` onclick="abrirAcoesAparelho('${d.id}', ${!!apenasConsulta})"` : '';
+  const classeClicavel = comAcoes ? ' class="linha-clicavel"' : '';
 
-  return `<tr>
+  return `<tr${classeClicavel}${onclickAttr}>
     ${lojaCell}
     <td title="${escapeHtml(d.nome||'')}"><strong>${escapeHtml(d.nome||'')}</strong></td>
     <td class="imei-cell">${escapeHtml(d.imei||'—')}</td>
@@ -624,15 +474,13 @@ function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
     <td class="price-cell">${escapeHtml(d.dezoito||'—')}</td>
     <td class="cell-observacao" title="${escapeHtml(d.observacao||'')}">${escapeHtml(d.observacao||'—')}</td>
     <td>${statusBadge}</td>
-    ${acaoCell}
   </tr>`;
 }
 
 function theadAparelhos(comLoja, comAcoes){
   const lojaTh = comLoja ? '<th>Loja</th>' : '';
-  const acoesTh = comAcoes ? '<th class="col-acoes" style="width:120px;">Ações</th>' : '';
   return `<tr>${lojaTh}<th>Aparelho</th><th>IMEI</th><th>Armaz.</th><th>RAM</th><th>NFC</th>
-    <th>Garantia</th><th>À vista</th><th>5x</th><th>10x</th><th>18x</th><th>Observação</th><th>Status</th>${acoesTh}</tr>`;
+    <th>Garantia</th><th>À vista</th><th>5x</th><th>10x</th><th>18x</th><th>Observação</th><th>Status</th></tr>`;
 }
 
 function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes, apenasConsulta){
@@ -700,23 +548,32 @@ function renderTabelaTodasLojas(){
   renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosTodas', lista, true, true, true);
 }
 
-function acaoAparelho(select, deviceId){
-  const val = select.value; select.value='';
-  if (val==='vender') abrirVenda(deviceId);
-  else if (val==='transferir') abrirTransferencia(deviceId);
-  else if (val==='editar') abrirEditar(deviceId);
-  else if (val==='fotos') abrirFotos(deviceId, true);
-  else if (val==='verFotos') abrirFotos(deviceId, false);
-  else if (val==='copiar') copiarInfoAparelho(deviceId);
-  else if (val==='excluir') excluirAparelho(deviceId);
+function abrirAcoesAparelho(deviceId, apenasConsulta){
+  const d = buscarDevice(deviceId);
+  if (!d) return;
+  const podeEditar = !apenasConsulta && (isMasterUser || d.storeId === myStoreId);
+
+  document.getElementById('acoesDeviceInfo').textContent = `${d.nome||''} · IMEI ${d.imei||'—'}`;
+
+  let botoes = '';
+  if (podeEditar){
+    if (d.status === 'transfer_pendente'){
+      botoes += `<button class="btn-ghost" onclick="cancelarTransferencia('${d.pendingTransferId}')"><i class="fa-solid fa-ban"></i> Cancelar transferência</button>`;
+    } else {
+      botoes += `<button class="btn-ghost" onclick="abrirVenda('${d.id}')"><i class="fa-solid fa-cart-shopping"></i> Vender</button>`;
+      botoes += `<button class="btn-ghost" onclick="abrirTransferencia('${d.id}')"><i class="fa-solid fa-truck-fast"></i> Transferir</button>`;
+      botoes += `<button class="btn-ghost" onclick="abrirEditar('${d.id}')"><i class="fa-solid fa-pen-to-square"></i> Editar</button>`;
+    }
+  }
+  botoes += `<button class="btn-ghost" onclick="copiarInfoAparelho('${d.id}')"><i class="fa-solid fa-copy"></i> Copiar informações</button>`;
+  if (podeEditar && d.status !== 'transfer_pendente'){
+    botoes += `<button class="btn-ghost" onclick="excluirAparelho('${d.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>`;
+  }
+
+  document.getElementById('acoesBotoes').innerHTML = botoes;
+  abrirPainel('boxAcoesAparelho');
 }
 
-function atualizarStats(){
-  document.getElementById('statTotal').textContent = devicesCache.length;
-  document.getElementById('statDisponivel').textContent = devicesCache.filter(d=>d.status==='disponivel').length;
-  document.getElementById('statVendido').textContent = devicesCache.filter(d=>d.status==='vendido').length;
-  document.getElementById('statTransferPendente').textContent = devicesCache.filter(d=>d.status==='transfer_pendente').length;
-}
 
 /* =========================================================================
    HISTÓRICO (registro de eventos)
@@ -992,123 +849,6 @@ function copiarInfoAparelho(deviceId){
   navigator.clipboard.writeText(texto)
     .then(()=>showToast('Informações copiadas!','success'))
     .catch(err=>showToast('Erro ao copiar: '+err.message,'error'));
-}
-
-/* =========================================================================
-   FOTOS DO APARELHO
-   ========================================================================= */
-function abrirFotos(deviceId, modoEdicao){
-  const d = buscarDevice(deviceId);
-  if (!d) return;
-  fotosDeviceId = deviceId;
-  fotosModoEdicao = !!modoEdicao;
-  fotosParaAdicionar = [];
-  document.getElementById('fotosDeviceInfo').textContent = `${d.nome||''} · IMEI ${d.imei||'—'}`;
-  document.getElementById('wrapAdicionarFotos').classList.toggle('hidden', !fotosModoEdicao);
-  const inputAdicionar = document.getElementById('inputAdicionarFotos');
-  if (inputAdicionar) inputAdicionar.value = '';
-  renderGridFotos();
-  renderPreviewFotosAdicionar();
-  abrirPainel('boxFotos');
-}
-
-function renderGridFotos(){
-  const d = buscarDevice(fotosDeviceId);
-  const fotos = (d && d.fotos) || [];
-  document.getElementById('contadorFotos').textContent = `${fotos.length}/${MAX_FOTOS_APARELHO} fotos`;
-  const grid = document.getElementById('gridFotosAparelho');
-  grid.innerHTML = fotos.length===0
-    ? '<p class="texto-soft">Nenhuma foto cadastrada para este aparelho.</p>'
-    : fotos.map((f,i)=>`
-      <div class="foto-thumb">
-        <img src="${f.url}" onclick="window.open('${f.url}','_blank')" title="Abrir em tamanho real" />
-        ${fotosModoEdicao ? `<button type="button" class="foto-remover" onclick="removerFoto(${i})" title="Remover"><i class="fa-solid fa-xmark"></i></button>` : ''}
-      </div>`).join('');
-  const inputAdicionar = document.getElementById('inputAdicionarFotos');
-  if (inputAdicionar) inputAdicionar.disabled = fotos.length >= MAX_FOTOS_APARELHO;
-}
-
-async function removerFoto(index){
-  const d = buscarDevice(fotosDeviceId);
-  if (!d) return;
-  const fotos = d.fotos || [];
-  const foto = fotos[index];
-  if (!foto) return;
-  if (!confirm('Remover esta foto do aparelho?')) return;
-  try{
-    const novasFotos = fotos.filter((_,i)=>i!==index);
-    await db.collection('devices').doc(fotosDeviceId).update({ fotos: novasFotos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    d.fotos = novasFotos; // atualiza cache local imediatamente, sem esperar o snapshot
-    renderGridFotos();
-    if (foto.path) storage.ref(foto.path).delete().catch(()=>{});
-    showToast('Foto removida.','info');
-  }catch(err){ showToast('Erro ao remover foto: '+err.message,'error'); }
-}
-
-function selecionarFotosAdicionar(inputEl){
-  const d = buscarDevice(fotosDeviceId);
-  const atuais = (d && d.fotos) || [];
-  const espaco = MAX_FOTOS_APARELHO - atuais.length - fotosParaAdicionar.length;
-  const escolhidos = Array.from(inputEl.files);
-  if (escolhidos.length > espaco){
-    showToast(espaco>0
-      ? `Você pode adicionar no máximo ${MAX_FOTOS_APARELHO} fotos por aparelho. Foram selecionadas apenas ${espaco}.`
-      : `Limite de ${MAX_FOTOS_APARELHO} fotos já atingido.`, 'warning');
-  }
-  fotosParaAdicionar.push(...escolhidos.slice(0, Math.max(espaco,0)));
-  inputEl.value = '';
-  renderPreviewFotosAdicionar();
-}
-
-function removerFotoParaAdicionar(index){
-  fotosParaAdicionar.splice(index,1);
-  renderPreviewFotosAdicionar();
-}
-
-function renderPreviewFotosAdicionar(){
-  const cont = document.getElementById('previewFotosAdicionar');
-  const btnSalvar = document.getElementById('btnSalvarFotos');
-  if (!cont) return;
-  cont.innerHTML = fotosParaAdicionar.map((f,i)=>`
-    <div class="foto-thumb">
-      <img src="${URL.createObjectURL(f)}" />
-      <button type="button" class="foto-remover" onclick="removerFotoParaAdicionar(${i})" title="Remover"><i class="fa-solid fa-xmark"></i></button>
-    </div>`).join('');
-  if (btnSalvar) btnSalvar.classList.toggle('hidden', fotosParaAdicionar.length===0);
-  const d = buscarDevice(fotosDeviceId);
-  const atuais = (d && d.fotos) || [];
-  const inputAdicionar = document.getElementById('inputAdicionarFotos');
-  if (inputAdicionar) inputAdicionar.disabled = (atuais.length + fotosParaAdicionar.length) >= MAX_FOTOS_APARELHO;
-}
-
-async function salvarFotosAdicionadas(){
-  const d = buscarDevice(fotosDeviceId);
-  if (!d || fotosParaAdicionar.length===0) return;
-  const btnSalvar = document.getElementById('btnSalvarFotos');
-  const textoOriginal = btnSalvar ? btnSalvar.innerHTML : '';
-  const arquivos = [...fotosParaAdicionar];
-  if (btnSalvar){ btnSalvar.disabled = true; btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)... 0%`; }
-  const inputAdicionar = document.getElementById('inputAdicionarFotos');
-  if (inputAdicionar) inputAdicionar.disabled = true;
-  try{
-    const atuais = d.fotos || [];
-    const novas = await uploadFotosAparelho(fotosDeviceId, arquivos, pct=>{
-      if (btnSalvar) btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)... ${pct}%`;
-    });
-    const todasFotos = [...atuais, ...novas];
-    await db.collection('devices').doc(fotosDeviceId).update({ fotos: todasFotos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    d.fotos = todasFotos;
-    fotosParaAdicionar = [];
-    renderGridFotos();
-    renderPreviewFotosAdicionar();
-    showToast('Fotos salvas! Já estão visíveis para todas as lojas.','success');
-  }catch(err){
-    showToast('Erro ao salvar fotos: '+err.message,'error');
-  }finally{
-    if (btnSalvar){ btnSalvar.disabled = false; btnSalvar.innerHTML = textoOriginal || '<i class="fa-solid fa-cloud-arrow-up"></i> Salvar fotos'; }
-    const dAtual = buscarDevice(fotosDeviceId);
-    if (inputAdicionar) inputAdicionar.disabled = ((dAtual && dAtual.fotos) || []).length >= MAX_FOTOS_APARELHO;
-  }
 }
 
 /* =========================================================================

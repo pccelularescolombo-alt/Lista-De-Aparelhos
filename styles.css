@@ -67,7 +67,7 @@ textarea{min-height:60px;resize:vertical;}
 .badge-muted{background:var(--surface-2);color:var(--text-soft);border:1px solid var(--border);}
 
 /* ===== CONTAINER ===== */
-.container{max-width:1500px;margin:0 auto;padding:22px 24px 60px;}
+.container{max-width:100%;margin:0 auto;padding:22px 20px 60px;}
 /* ===== TABS ===== */
 .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);padding:5px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap;}
 .tab-btn{background:transparent;color:var(--text-muted);padding:9px 16px;border-radius:8px;font-weight:700;font-size:12.5px;}
@@ -95,8 +95,8 @@ textarea{min-height:60px;resize:vertical;}
 /* ===== TABELA ===== */
 .table-wrapper{width:100%;overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:#fff;}
 table{width:100%;border-collapse:separate;border-spacing:0;}
-th{background:var(--surface-2);color:var(--text-muted);padding:10px 10px;font-size:10.5px;font-weight:800;text-align:left;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);}
-td{padding:9px 9px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);white-space:nowrap;}
+th{background:var(--surface-2);color:var(--text-muted);padding:9px 7px;font-size:10.5px;font-weight:800;text-align:left;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--border);}
+td{padding:8px 7px;font-size:12.5px;vertical-align:middle;border-bottom:1px solid var(--border);white-space:nowrap;}
 tbody tr:hover{background:var(--surface-2);}
 tbody tr:last-child td{border-bottom:none;}
 .empty{text-align:center;color:var(--text-soft);padding:40px 16px;font-size:13px;}
@@ -123,9 +123,8 @@ tbody tr:last-child td{border-bottom:none;}
 #corpoTabelaAparelhosAtual table,
 #corpoTabelaAparelhosTodas table{
   table-layout:fixed;
+  width:100%;
 }
-#corpoTabelaAparelhosAtual table{min-width:1480px;}
-#corpoTabelaAparelhosTodas table{min-width:1590px;}
 
 #corpoTabelaAparelhosAtual table th,
 #corpoTabelaAparelhosAtual table td,
@@ -134,42 +133,42 @@ tbody tr:last-child td{border-bottom:none;}
   text-align:center;
   overflow:hidden;
   text-overflow:ellipsis;
+  white-space:normal;
+  word-break:break-word;
 }
 
 /* Aba "Loja Atual" (sem coluna Loja):
    1 Aparelho, 2 IMEI, 3 Armaz, 4 RAM, 5 NFC, 6 Garantia,
-   7 À vista, 8 5x, 9 10x, 10 18x, 11 Observação, 12 Status, 13 Ações */
-#corpoTabelaAparelhosAtual table th:nth-child(1),  #corpoTabelaAparelhosAtual table td:nth-child(1) {width:210px;text-align:left;}
-#corpoTabelaAparelhosAtual table th:nth-child(2),  #corpoTabelaAparelhosAtual table td:nth-child(2) {width:150px;}
-#corpoTabelaAparelhosAtual table th:nth-child(3),  #corpoTabelaAparelhosAtual table td:nth-child(3) {width:90px;}
-#corpoTabelaAparelhosAtual table th:nth-child(4),  #corpoTabelaAparelhosAtual table td:nth-child(4) {width:70px;}
-#corpoTabelaAparelhosAtual table th:nth-child(5),  #corpoTabelaAparelhosAtual table td:nth-child(5) {width:70px;}
-#corpoTabelaAparelhosAtual table th:nth-child(6),  #corpoTabelaAparelhosAtual table td:nth-child(6) {width:95px;}
-#corpoTabelaAparelhosAtual table th:nth-child(7),  #corpoTabelaAparelhosAtual table td:nth-child(7) {width:100px;}
-#corpoTabelaAparelhosAtual table th:nth-child(8),  #corpoTabelaAparelhosAtual table td:nth-child(8) {width:95px;}
-#corpoTabelaAparelhosAtual table th:nth-child(9),  #corpoTabelaAparelhosAtual table td:nth-child(9) {width:95px;}
-#corpoTabelaAparelhosAtual table th:nth-child(10), #corpoTabelaAparelhosAtual table td:nth-child(10){width:95px;}
-#corpoTabelaAparelhosAtual table th:nth-child(11), #corpoTabelaAparelhosAtual table td:nth-child(11){width:170px;text-align:left;}
-#corpoTabelaAparelhosAtual table th:nth-child(12), #corpoTabelaAparelhosAtual table td:nth-child(12){width:120px;}
-#corpoTabelaAparelhosAtual table th:nth-child(13), #corpoTabelaAparelhosAtual table td:nth-child(13){width:120px;}
+   7 À vista, 8 5x, 9 10x, 10 18x, 11 Observação, 12 Status */
+#corpoTabelaAparelhosAtual table th:nth-child(1),  #corpoTabelaAparelhosAtual table td:nth-child(1) {width:17%;text-align:left;}
+#corpoTabelaAparelhosAtual table th:nth-child(2),  #corpoTabelaAparelhosAtual table td:nth-child(2) {width:10%;}
+#corpoTabelaAparelhosAtual table th:nth-child(3),  #corpoTabelaAparelhosAtual table td:nth-child(3) {width:7%;}
+#corpoTabelaAparelhosAtual table th:nth-child(4),  #corpoTabelaAparelhosAtual table td:nth-child(4) {width:6%;}
+#corpoTabelaAparelhosAtual table th:nth-child(5),  #corpoTabelaAparelhosAtual table td:nth-child(5) {width:6%;}
+#corpoTabelaAparelhosAtual table th:nth-child(6),  #corpoTabelaAparelhosAtual table td:nth-child(6) {width:7%;}
+#corpoTabelaAparelhosAtual table th:nth-child(7),  #corpoTabelaAparelhosAtual table td:nth-child(7) {width:8%;}
+#corpoTabelaAparelhosAtual table th:nth-child(8),  #corpoTabelaAparelhosAtual table td:nth-child(8) {width:7%;}
+#corpoTabelaAparelhosAtual table th:nth-child(9),  #corpoTabelaAparelhosAtual table td:nth-child(9) {width:7%;}
+#corpoTabelaAparelhosAtual table th:nth-child(10), #corpoTabelaAparelhosAtual table td:nth-child(10){width:7%;}
+#corpoTabelaAparelhosAtual table th:nth-child(11), #corpoTabelaAparelhosAtual table td:nth-child(11){width:12%;text-align:left;}
+#corpoTabelaAparelhosAtual table th:nth-child(12), #corpoTabelaAparelhosAtual table td:nth-child(12){width:6%;}
 
 /* Aba "Todos os Aparelhos" (com coluna Loja na frente):
    1 Loja, 2 Aparelho, 3 IMEI, 4 Armaz, 5 RAM, 6 NFC, 7 Garantia,
-   8 À vista, 9 5x, 10 10x, 11 18x, 12 Observação, 13 Status, 14 Ações */
-#corpoTabelaAparelhosTodas table th:nth-child(1),  #corpoTabelaAparelhosTodas table td:nth-child(1) {width:110px;}
-#corpoTabelaAparelhosTodas table th:nth-child(2),  #corpoTabelaAparelhosTodas table td:nth-child(2) {width:210px;text-align:left;}
-#corpoTabelaAparelhosTodas table th:nth-child(3),  #corpoTabelaAparelhosTodas table td:nth-child(3) {width:150px;}
-#corpoTabelaAparelhosTodas table th:nth-child(4),  #corpoTabelaAparelhosTodas table td:nth-child(4) {width:90px;}
-#corpoTabelaAparelhosTodas table th:nth-child(5),  #corpoTabelaAparelhosTodas table td:nth-child(5) {width:70px;}
-#corpoTabelaAparelhosTodas table th:nth-child(6),  #corpoTabelaAparelhosTodas table td:nth-child(6) {width:70px;}
-#corpoTabelaAparelhosTodas table th:nth-child(7),  #corpoTabelaAparelhosTodas table td:nth-child(7) {width:95px;}
-#corpoTabelaAparelhosTodas table th:nth-child(8),  #corpoTabelaAparelhosTodas table td:nth-child(8) {width:100px;}
-#corpoTabelaAparelhosTodas table th:nth-child(9),  #corpoTabelaAparelhosTodas table td:nth-child(9) {width:95px;}
-#corpoTabelaAparelhosTodas table th:nth-child(10), #corpoTabelaAparelhosTodas table td:nth-child(10){width:95px;}
-#corpoTabelaAparelhosTodas table th:nth-child(11), #corpoTabelaAparelhosTodas table td:nth-child(11){width:95px;}
-#corpoTabelaAparelhosTodas table th:nth-child(12), #corpoTabelaAparelhosTodas table td:nth-child(12){width:170px;text-align:left;}
-#corpoTabelaAparelhosTodas table th:nth-child(13), #corpoTabelaAparelhosTodas table td:nth-child(13){width:120px;}
-#corpoTabelaAparelhosTodas table th:nth-child(14), #corpoTabelaAparelhosTodas table td:nth-child(14){width:120px;}
+   8 À vista, 9 5x, 10 10x, 11 18x, 12 Observação, 13 Status */
+#corpoTabelaAparelhosTodas table th:nth-child(1),  #corpoTabelaAparelhosTodas table td:nth-child(1) {width:9%;}
+#corpoTabelaAparelhosTodas table th:nth-child(2),  #corpoTabelaAparelhosTodas table td:nth-child(2) {width:19%;text-align:left;}
+#corpoTabelaAparelhosTodas table th:nth-child(3),  #corpoTabelaAparelhosTodas table td:nth-child(3) {width:9%;}
+#corpoTabelaAparelhosTodas table th:nth-child(4),  #corpoTabelaAparelhosTodas table td:nth-child(4) {width:6%;}
+#corpoTabelaAparelhosTodas table th:nth-child(5),  #corpoTabelaAparelhosTodas table td:nth-child(5) {width:5%;}
+#corpoTabelaAparelhosTodas table th:nth-child(6),  #corpoTabelaAparelhosTodas table td:nth-child(6) {width:5%;}
+#corpoTabelaAparelhosTodas table th:nth-child(7),  #corpoTabelaAparelhosTodas table td:nth-child(7) {width:6%;}
+#corpoTabelaAparelhosTodas table th:nth-child(8),  #corpoTabelaAparelhosTodas table td:nth-child(8) {width:7%;}
+#corpoTabelaAparelhosTodas table th:nth-child(9),  #corpoTabelaAparelhosTodas table td:nth-child(9) {width:6%;}
+#corpoTabelaAparelhosTodas table th:nth-child(10), #corpoTabelaAparelhosTodas table td:nth-child(10){width:6%;}
+#corpoTabelaAparelhosTodas table th:nth-child(11), #corpoTabelaAparelhosTodas table td:nth-child(11){width:6%;}
+#corpoTabelaAparelhosTodas table th:nth-child(12), #corpoTabelaAparelhosTodas table td:nth-child(12){width:11%;text-align:left;}
+#corpoTabelaAparelhosTodas table th:nth-child(13), #corpoTabelaAparelhosTodas table td:nth-child(13){width:5%;}
 
 /* ===== SUB-TABELAS POR CATEGORIA ===== */
 .subtabela-categoria{border-bottom:1px solid var(--border);}

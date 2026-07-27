@@ -227,6 +227,26 @@ function fecharPainel(){
 document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharPainel(); });
 
 /* =========================================================================
+   BOX CENTRAL DE COPIAR MENSAGEM (Vender / Transferir / Autorizar transferência)
+   ========================================================================= */
+let copiarMensagemAtual = '';
+function abrirBoxCopiarMensagem(titulo, texto){
+  copiarMensagemAtual = texto;
+  document.getElementById('copiarMsgTitulo').innerHTML = `<i class="fa-solid fa-copy"></i> ${titulo}`;
+  document.getElementById('copiarMsgConteudo').textContent = texto;
+  document.getElementById('modalCopiarOverlay').classList.remove('hidden');
+}
+function fecharBoxCopiarMensagem(){
+  document.getElementById('modalCopiarOverlay').classList.add('hidden');
+}
+function copiarMensagemBox(){
+  navigator.clipboard.writeText(copiarMensagemAtual)
+    .then(()=>showToast('Mensagem copiada!','success'))
+    .catch(err=>showToast('Erro ao copiar: '+err.message,'error'));
+}
+document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharBoxCopiarMensagem(); });
+
+/* =========================================================================
    AUTENTICAÇÃO
    ========================================================================= */
 document.getElementById('formLogin').addEventListener('submit', async e=>{
@@ -611,6 +631,7 @@ async function confirmarVenda(){
     await registrarHistorico([d.storeId], 'Venda', d, detalhe, { cliente, cpf, telefone: tel, vendedor, numeroPedido, numeroCcb });
     fecharPainel();
     showToast('Venda registrada!','success');
+    abrirBoxCopiarMensagem('Venda registrada', detalhe);
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
 
@@ -657,6 +678,7 @@ async function confirmarTransferencia(){
     await registrarHistorico([originStoreId], 'Transferência solicitada', d, detalhe);
     fecharPainel();
     showToast('Transferência solicitada! Aguardando aprovação da loja destino.','success');
+    abrirBoxCopiarMensagem('Transferência solicitada', detalhe);
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
 
@@ -690,6 +712,7 @@ async function aprovarTransferencia(transferId){
     const detalhe = `ADICIONADO:\nTRANSFERÊNCIA ${formatarDataHoraSP(new Date())}\nLOJA ATUAL: ${t.originStoreName||''}\nLOJA DESTINO: ${t.destStoreName||''}\nPRODUTO: ${produtoStr}\nIMEI: ${t.deviceSnapshot?.imei||'—'}\nVENDEDOR: ${t.vendedor||''}\nENTREGADOR: ${t.entregador||''}`;
     await registrarHistorico([t.originStoreId, t.destStoreId], 'Transferência aprovada', t.deviceSnapshot, detalhe);
     showToast('Transferência aprovada!','success');
+    abrirBoxCopiarMensagem('Transferência autorizada', detalhe);
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
 

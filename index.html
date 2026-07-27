@@ -328,6 +328,19 @@
 
 </div>
 
+<!-- ===================== MODAL CENTRAL: COPIAR MENSAGEM ===================== -->
+<div id="modalCopiarOverlay" class="modal-overlay hidden" onclick="if(event.target===this) fecharBoxCopiarMensagem()">
+  <div class="modal-box" style="max-width:520px;">
+    <h2 id="copiarMsgTitulo"><i class="fa-solid fa-copy"></i> Mensagem</h2>
+    <p>Copie a mensagem abaixo para enviar.</p>
+    <pre class="copiar-msg-conteudo" id="copiarMsgConteudo"></pre>
+    <div class="painel-actions">
+      <button class="btn-primary" onclick="copiarMensagemBox()"><i class="fa-solid fa-copy"></i> Copiar mensagem</button>
+      <button class="btn-ghost" onclick="fecharBoxCopiarMensagem()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toastContainer"></div>
 
 <script src="script.js"></script>

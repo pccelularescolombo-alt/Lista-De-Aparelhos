@@ -76,13 +76,70 @@ function buscarDevice(id){ return devicesCache.find(x=>x.id===id) || devicesCach
 /* =========================================================================
    UPLOAD DE FOTOS (Firebase Storage)
    ========================================================================= */
-async function uploadFotosAparelho(deviceId, arquivos){
+// Reduz o tamanho da imagem antes de enviar (fotos de celular costumam vir com
+// vários MB, o que deixa o envio extremamente lento em redes fracas). Isso
+// evita a sensação de "travado no infinito" ao enviar fotos grandes.
+async function comprimirImagem(file){
+  if (!file.type || !file.type.startsWith('image/')) return file;
+  try{
+    const bitmap = await createImageBitmap(file);
+    const MAX_DIM = 1600;
+    let { width, height } = bitmap;
+    if (width > MAX_DIM || height > MAX_DIM){
+      const escala = Math.min(MAX_DIM / width, MAX_DIM / height);
+      width = Math.round(width * escala);
+      height = Math.round(height * escala);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+    if (blob && blob.size < file.size) return blob;
+    return file;
+  }catch(err){
+    console.warn('Não foi possível comprimir a imagem, enviando original:', err);
+    return file;
+  }
+}
+
+// Envia um único arquivo com progresso real e timeout de segurança (evita
+// ficar "carregando para sempre" caso a rede trave no meio do envio).
+function enviarArquivoComTimeout(ref, arquivo, onProgress, timeoutMs = 60000){
+  return new Promise((resolve, reject)=>{
+    const tarefa = ref.put(arquivo, { contentType: arquivo.type || 'application/octet-stream' });
+    const timer = setTimeout(()=>{
+      tarefa.cancel();
+      reject(new Error('O envio da foto demorou demais e foi cancelado. Verifique sua conexão com a internet e tente novamente.'));
+    }, timeoutMs);
+    tarefa.on('state_changed',
+      snap=>{
+        if (onProgress && snap.totalBytes){
+          onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100));
+        }
+      },
+      err=>{ clearTimeout(timer); reject(err); },
+      ()=>{ clearTimeout(timer); resolve(); }
+    );
+  });
+}
+
+async function uploadFotosAparelho(deviceId, arquivos, onProgressGeral){
+  const progresso = new Array(arquivos.length).fill(0);
+  const notificarProgresso = (idx, pct)=>{
+    progresso[idx] = pct;
+    if (onProgressGeral){
+      const media = Math.round(progresso.reduce((a,b)=>a+b,0) / progresso.length);
+      onProgressGeral(media);
+    }
+  };
   // Envia todas as fotos em paralelo (mais rápido e evita a sensação de "travado" ao enviar várias fotos).
-  const uploads = arquivos.map(async file=>{
+  const uploads = arquivos.map(async (file, idx)=>{
+    const arquivoFinal = await comprimirImagem(file);
     const nomeArquivo = `${Date.now()}_${Math.random().toString(36).slice(2,8)}_${file.name}`.replace(/[^\w.\-]/g,'_');
     const path = `devices/${deviceId}/${nomeArquivo}`;
     const ref = storage.ref(path);
-    await ref.put(file);
+    await enviarArquivoComTimeout(ref, arquivoFinal, pct=>notificarProgresso(idx, pct));
     const url = await ref.getDownloadURL();
     return { url, path };
   });
@@ -450,8 +507,10 @@ document.getElementById('formAparelho').addEventListener('submit', async e=>{
     if (fotosSelecionadas.length) btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cadastrando...';
     const docRef = await db.collection('devices').add(dados);
     if (fotosSelecionadas.length){
-      btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando fotos...';
-      const fotos = await uploadFotosAparelho(docRef.id, fotosSelecionadas);
+      btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando fotos... 0%';
+      const fotos = await uploadFotosAparelho(docRef.id, fotosSelecionadas, pct=>{
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando fotos... ${pct}%`;
+      });
       await docRef.update({ fotos });
     }
     await registrarHistorico([lojaAlvo], 'Cadastro', dados, `Aparelho cadastrado: ${nome}`);
@@ -1028,12 +1087,14 @@ async function salvarFotosAdicionadas(){
   const btnSalvar = document.getElementById('btnSalvarFotos');
   const textoOriginal = btnSalvar ? btnSalvar.innerHTML : '';
   const arquivos = [...fotosParaAdicionar];
-  if (btnSalvar){ btnSalvar.disabled = true; btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)...`; }
+  if (btnSalvar){ btnSalvar.disabled = true; btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)... 0%`; }
   const inputAdicionar = document.getElementById('inputAdicionarFotos');
   if (inputAdicionar) inputAdicionar.disabled = true;
   try{
     const atuais = d.fotos || [];
-    const novas = await uploadFotosAparelho(fotosDeviceId, arquivos);
+    const novas = await uploadFotosAparelho(fotosDeviceId, arquivos, pct=>{
+      if (btnSalvar) btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${arquivos.length} foto(s)... ${pct}%`;
+    });
     const todasFotos = [...atuais, ...novas];
     await db.collection('devices').doc(fotosDeviceId).update({ fotos: todasFotos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     d.fotos = todasFotos;

@@ -484,7 +484,7 @@ function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
     <td>${escapeHtml(d.ram||'—')}</td>
     <td>${d.nfc==='Sim' ? '<span class="nfc-yes">Sim</span>' : '<span class="nfc-no">Não</span>'}</td>
     <td>${escapeHtml(d.garantia||'—')}</td>
-    <td class="price-cell">${escapeHtml(d.avista||'—')}</td>
+    <td class="price-cell price-cell-main">${escapeHtml(d.avista||'—')}</td>
     <td class="price-cell">${escapeHtml(d.cinco||'—')}</td>
     <td class="price-cell">${escapeHtml(d.dez||'—')}</td>
     <td class="price-cell">${escapeHtml(d.dezoito||'—')}</td>

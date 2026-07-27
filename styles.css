@@ -139,7 +139,7 @@ tbody tr:last-child td{border-bottom:none;}
 
 /* Aba "Loja Atual" (sem coluna Loja):
    1 Aparelho, 2 IMEI, 3 Armaz, 4 RAM, 5 NFC, 6 Garantia,
-   7 À vista, 8 5x, 9 10x, 10 18x, 11 Observação, 12 Status */
+   7 À vista, 8 5x, 9 10x, 10 18x, 11 Observação */
 #corpoTabelaAparelhosAtual table th:nth-child(1),  #corpoTabelaAparelhosAtual table td:nth-child(1) {width:17%;text-align:left;}
 #corpoTabelaAparelhosAtual table th:nth-child(2),  #corpoTabelaAparelhosAtual table td:nth-child(2) {width:10%;}
 #corpoTabelaAparelhosAtual table th:nth-child(3),  #corpoTabelaAparelhosAtual table td:nth-child(3) {width:7%;}
@@ -150,12 +150,11 @@ tbody tr:last-child td{border-bottom:none;}
 #corpoTabelaAparelhosAtual table th:nth-child(8),  #corpoTabelaAparelhosAtual table td:nth-child(8) {width:7%;}
 #corpoTabelaAparelhosAtual table th:nth-child(9),  #corpoTabelaAparelhosAtual table td:nth-child(9) {width:7%;}
 #corpoTabelaAparelhosAtual table th:nth-child(10), #corpoTabelaAparelhosAtual table td:nth-child(10){width:7%;}
-#corpoTabelaAparelhosAtual table th:nth-child(11), #corpoTabelaAparelhosAtual table td:nth-child(11){width:12%;text-align:left;}
-#corpoTabelaAparelhosAtual table th:nth-child(12), #corpoTabelaAparelhosAtual table td:nth-child(12){width:6%;}
+#corpoTabelaAparelhosAtual table th:nth-child(11), #corpoTabelaAparelhosAtual table td:nth-child(11){width:18%;text-align:left;}
 
 /* Aba "Todos os Aparelhos" (com coluna Loja na frente):
    1 Loja, 2 Aparelho, 3 IMEI, 4 Armaz, 5 RAM, 6 NFC, 7 Garantia,
-   8 À vista, 9 5x, 10 10x, 11 18x, 12 Observação, 13 Status */
+   8 À vista, 9 5x, 10 10x, 11 18x, 12 Observação */
 #corpoTabelaAparelhosTodas table th:nth-child(1),  #corpoTabelaAparelhosTodas table td:nth-child(1) {width:9%;}
 #corpoTabelaAparelhosTodas table th:nth-child(2),  #corpoTabelaAparelhosTodas table td:nth-child(2) {width:19%;text-align:left;}
 #corpoTabelaAparelhosTodas table th:nth-child(3),  #corpoTabelaAparelhosTodas table td:nth-child(3) {width:9%;}
@@ -167,8 +166,7 @@ tbody tr:last-child td{border-bottom:none;}
 #corpoTabelaAparelhosTodas table th:nth-child(9),  #corpoTabelaAparelhosTodas table td:nth-child(9) {width:6%;}
 #corpoTabelaAparelhosTodas table th:nth-child(10), #corpoTabelaAparelhosTodas table td:nth-child(10){width:6%;}
 #corpoTabelaAparelhosTodas table th:nth-child(11), #corpoTabelaAparelhosTodas table td:nth-child(11){width:6%;}
-#corpoTabelaAparelhosTodas table th:nth-child(12), #corpoTabelaAparelhosTodas table td:nth-child(12){width:11%;text-align:left;}
-#corpoTabelaAparelhosTodas table th:nth-child(13), #corpoTabelaAparelhosTodas table td:nth-child(13){width:5%;}
+#corpoTabelaAparelhosTodas table th:nth-child(12), #corpoTabelaAparelhosTodas table td:nth-child(12){width:16%;text-align:left;}
 
 /* ===== SUB-TABELAS POR CATEGORIA ===== */
 .subtabela-categoria{border-bottom:1px solid var(--border);}

@@ -452,10 +452,6 @@ function filtrarCategoriaTodas(c){ filtroCategoriaAtivoTodas=c; renderChipsCateg
 function toggleChipVendidosTodas(btn){ btn.classList.toggle('active'); renderTabelaTodasLojas(); }
 
 function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
-  const statusBadge = d.status==='vendido' ? '<span class="badge badge-muted">Vendido</span>'
-    : d.status==='transfer_pendente' ? '<span class="badge badge-warning">Transf. pendente</span>'
-    : '<span class="badge badge-success">Disponível</span>';
-
   const lojaCell = comLoja ? `<td>${escapeHtml(lojasMap[d.storeId]?.name || '—')}</td>` : '';
   const onclickAttr = comAcoes ? ` onclick="abrirAcoesAparelho('${d.id}', ${!!apenasConsulta})"` : '';
   const classeClicavel = comAcoes ? ' class="linha-clicavel"' : '';
@@ -473,14 +469,13 @@ function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
     <td class="price-cell">${escapeHtml(d.dez||'—')}</td>
     <td class="price-cell">${escapeHtml(d.dezoito||'—')}</td>
     <td class="cell-observacao" title="${escapeHtml(d.observacao||'')}">${escapeHtml(d.observacao||'—')}</td>
-    <td>${statusBadge}</td>
   </tr>`;
 }
 
 function theadAparelhos(comLoja, comAcoes){
   const lojaTh = comLoja ? '<th>Loja</th>' : '';
   return `<tr>${lojaTh}<th>Aparelho</th><th>IMEI</th><th>Armaz.</th><th>RAM</th><th>NFC</th>
-    <th>Garantia</th><th>À vista</th><th>5x</th><th>10x</th><th>18x</th><th>Observação</th><th>Status</th></tr>`;
+    <th>Garantia</th><th>À vista</th><th>5x</th><th>10x</th><th>18x</th><th>Observação</th></tr>`;
 }
 
 function renderTabelaAgrupadaPorCategoria(containerId, lista, comLoja, comAcoes, apenasConsulta){

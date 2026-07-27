@@ -552,7 +552,7 @@ function linhaAparelho(d, comLoja, comAcoes, apenasConsulta){
 
   return `<tr>
     ${lojaCell}
-    <td><strong>${escapeHtml(d.nome||'')}</strong></td>
+    <td title="${escapeHtml(d.nome||'')}"><strong>${escapeHtml(d.nome||'')}</strong></td>
     <td class="imei-cell">${escapeHtml(d.imei||'—')}</td>
     <td>${escapeHtml(d.armazenamento||'—')}</td>
     <td>${escapeHtml(d.ram||'—')}</td>

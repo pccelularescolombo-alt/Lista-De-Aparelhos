@@ -125,6 +125,61 @@ tbody tr:last-child td{border-bottom:none;}
 .categoria-group-header td{background:var(--surface-2);font-weight:800;font-size:11px;color:var(--text);padding:9px 10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);}
 .categoria-group-header:hover{background:var(--surface-2) !important;}
 
+/* ===== LARGURA FIXA DAS COLUNAS (alinhamento entre categorias) =====
+   Cada categoria (NOVO, SEMI-NOVO, OUTLET...) é uma tabela separada.
+   Com table-layout:fixed + largura igual em todas, as colunas ficam
+   sempre na mesma posição, não importa o conteúdo de cada linha. */
+#corpoTabelaAparelhosAtual table,
+#corpoTabelaAparelhosTodas table{
+  table-layout:fixed;
+}
+#corpoTabelaAparelhosAtual table{min-width:1480px;}
+#corpoTabelaAparelhosTodas table{min-width:1590px;}
+
+#corpoTabelaAparelhosAtual table th,
+#corpoTabelaAparelhosAtual table td,
+#corpoTabelaAparelhosTodas table th,
+#corpoTabelaAparelhosTodas table td{
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Aba "Loja Atual" (sem coluna Loja):
+   1 Aparelho, 2 IMEI, 3 Armaz, 4 RAM, 5 NFC, 6 Garantia,
+   7 À vista, 8 5x, 9 10x, 10 18x, 11 Observação, 12 Status, 13 Ações */
+#corpoTabelaAparelhosAtual table th:nth-child(1),  #corpoTabelaAparelhosAtual table td:nth-child(1) {width:210px;text-align:left;}
+#corpoTabelaAparelhosAtual table th:nth-child(2),  #corpoTabelaAparelhosAtual table td:nth-child(2) {width:150px;}
+#corpoTabelaAparelhosAtual table th:nth-child(3),  #corpoTabelaAparelhosAtual table td:nth-child(3) {width:90px;}
+#corpoTabelaAparelhosAtual table th:nth-child(4),  #corpoTabelaAparelhosAtual table td:nth-child(4) {width:70px;}
+#corpoTabelaAparelhosAtual table th:nth-child(5),  #corpoTabelaAparelhosAtual table td:nth-child(5) {width:70px;}
+#corpoTabelaAparelhosAtual table th:nth-child(6),  #corpoTabelaAparelhosAtual table td:nth-child(6) {width:95px;}
+#corpoTabelaAparelhosAtual table th:nth-child(7),  #corpoTabelaAparelhosAtual table td:nth-child(7) {width:100px;}
+#corpoTabelaAparelhosAtual table th:nth-child(8),  #corpoTabelaAparelhosAtual table td:nth-child(8) {width:95px;}
+#corpoTabelaAparelhosAtual table th:nth-child(9),  #corpoTabelaAparelhosAtual table td:nth-child(9) {width:95px;}
+#corpoTabelaAparelhosAtual table th:nth-child(10), #corpoTabelaAparelhosAtual table td:nth-child(10){width:95px;}
+#corpoTabelaAparelhosAtual table th:nth-child(11), #corpoTabelaAparelhosAtual table td:nth-child(11){width:170px;text-align:left;}
+#corpoTabelaAparelhosAtual table th:nth-child(12), #corpoTabelaAparelhosAtual table td:nth-child(12){width:120px;}
+#corpoTabelaAparelhosAtual table th:nth-child(13), #corpoTabelaAparelhosAtual table td:nth-child(13){width:120px;}
+
+/* Aba "Todos os Aparelhos" (com coluna Loja na frente):
+   1 Loja, 2 Aparelho, 3 IMEI, 4 Armaz, 5 RAM, 6 NFC, 7 Garantia,
+   8 À vista, 9 5x, 10 10x, 11 18x, 12 Observação, 13 Status, 14 Ações */
+#corpoTabelaAparelhosTodas table th:nth-child(1),  #corpoTabelaAparelhosTodas table td:nth-child(1) {width:110px;}
+#corpoTabelaAparelhosTodas table th:nth-child(2),  #corpoTabelaAparelhosTodas table td:nth-child(2) {width:210px;text-align:left;}
+#corpoTabelaAparelhosTodas table th:nth-child(3),  #corpoTabelaAparelhosTodas table td:nth-child(3) {width:150px;}
+#corpoTabelaAparelhosTodas table th:nth-child(4),  #corpoTabelaAparelhosTodas table td:nth-child(4) {width:90px;}
+#corpoTabelaAparelhosTodas table th:nth-child(5),  #corpoTabelaAparelhosTodas table td:nth-child(5) {width:70px;}
+#corpoTabelaAparelhosTodas table th:nth-child(6),  #corpoTabelaAparelhosTodas table td:nth-child(6) {width:70px;}
+#corpoTabelaAparelhosTodas table th:nth-child(7),  #corpoTabelaAparelhosTodas table td:nth-child(7) {width:95px;}
+#corpoTabelaAparelhosTodas table th:nth-child(8),  #corpoTabelaAparelhosTodas table td:nth-child(8) {width:100px;}
+#corpoTabelaAparelhosTodas table th:nth-child(9),  #corpoTabelaAparelhosTodas table td:nth-child(9) {width:95px;}
+#corpoTabelaAparelhosTodas table th:nth-child(10), #corpoTabelaAparelhosTodas table td:nth-child(10){width:95px;}
+#corpoTabelaAparelhosTodas table th:nth-child(11), #corpoTabelaAparelhosTodas table td:nth-child(11){width:95px;}
+#corpoTabelaAparelhosTodas table th:nth-child(12), #corpoTabelaAparelhosTodas table td:nth-child(12){width:170px;text-align:left;}
+#corpoTabelaAparelhosTodas table th:nth-child(13), #corpoTabelaAparelhosTodas table td:nth-child(13){width:120px;}
+#corpoTabelaAparelhosTodas table th:nth-child(14), #corpoTabelaAparelhosTodas table td:nth-child(14){width:120px;}
+
 /* ===== SUB-TABELAS POR CATEGORIA ===== */
 .subtabela-categoria{border-bottom:1px solid var(--border);}
 .subtabela-categoria:last-child{border-bottom:none;}

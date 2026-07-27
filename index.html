@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Controle de Aparelhos · Multi-lojas</title>
+<title>Pinheirinho Celulares · Controle de Aparelhos</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -24,7 +28,7 @@
 <!-- ===================== TELA DE AUTENTICAÇÃO ===================== -->
 <div id="telaAuth" class="auth-wrap hidden">
   <div class="auth-card">
-    <div class="auth-logo"><i class="fa-solid fa-mobile-screen-button"></i></div>
+    <div class="auth-logo"><img src="assets/logo-completa.png" alt="Pinheirinho Celulares" /></div>
     <h1>Controle de Aparelhos</h1>
     <p class="sub">Cadastro, vendas e transferências entre lojas</p>
 
@@ -65,9 +69,9 @@
 <div id="telaApp" class="hidden">
   <div class="topbar">
     <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+      <div class="brand-icon"><img src="assets/logo-icone.png" alt="Pinheirinho Celulares" /></div>
       <div>
-        <div class="brand-title">Controle de Aparelhos</div>
+        <div class="brand-title">Pinheirinho Celulares</div>
         <div style="display:flex;align-items:center;gap:6px;">
           <div class="brand-sub" id="pillLojaAtual">Carregando loja...</div>
           <button type="button" class="btn-ghost btn-icon hidden" id="btnEditarNomeLoja" onclick="abrirEdicaoNomeLoja()" title="Editar nome da loja" style="padding:2px 6px;font-size:10px;"><i class="fa-solid fa-pen"></i></button>

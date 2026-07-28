@@ -63,6 +63,13 @@ function formatarDataSomenteSP(date){
 function formatarProdutoDetalhe(d){
   return [d.categoria, d.nome, d.armazenamento, d.ram, d.garantia].filter(Boolean).join(' ');
 }
+function debounce(fn, delay=250){
+  let timer;
+  return function(...args){
+    clearTimeout(timer);
+    timer = setTimeout(()=>fn.apply(this,args), delay);
+  };
+}
 function valor(id){ const el=document.getElementById(id); return el ? el.value.trim() : ''; }
 function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function buscarDevice(id){ return devicesCache.find(x=>x.id===id) || devicesCacheTodas.find(x=>x.id===id); }
@@ -327,9 +334,12 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
+let aparelhosListenersIniciados = false;
+
 function limparListeners(){
   [unsubLojas,unsubDevices,unsubDevicesTodas,unsubUsuarios,unsubRecebidas,unsubEnviadas].forEach(u=>{ if (u) u(); });
   unsubLojas=unsubDevices=unsubDevicesTodas=unsubUsuarios=unsubRecebidas=unsubEnviadas=null;
+  aparelhosListenersIniciados = false; // permite reiniciar corretamente no próximo login
 }
 
 /* =========================================================================
@@ -343,7 +353,14 @@ function iniciarListeners(){
     atualizarPillLoja();
     renderTabelaLojasAdmin();
     renderTabelaTodasLojas();
-    iniciarListenerAparelhos();
+    // Os listeners de aparelhos só precisam ser criados UMA vez por sessão.
+    // Antes, isso rodava a cada mudança em "stores" (renomear loja, ativar/desativar etc.),
+    // cancelando e recriando o listener que baixa TODA a coleção "devices" repetidamente —
+    // essa era a principal causa da sobrecarga/travamento.
+    if (!aparelhosListenersIniciados){
+      aparelhosListenersIniciados = true;
+      iniciarListenerAparelhos();
+    }
   }, err=>showToast('Erro ao carregar lojas: '+err.message,'error'));
 
   iniciarListenerTransferencias();
@@ -562,6 +579,11 @@ function renderTabelaTodasLojas(){
 
   renderTabelaAgrupadaPorCategoria('corpoTabelaAparelhosTodas', lista, true, true, true);
 }
+
+// Versões com debounce: usadas nos campos de busca para não reconstruir a tabela
+// inteira (innerHTML) a cada tecla digitada, o que travava a página com muitos aparelhos.
+const renderTabelaLojaAtualDebounced = debounce(renderTabelaLojaAtual, 200);
+const renderTabelaTodasLojasDebounced = debounce(renderTabelaTodasLojas, 200);
 
 function abrirAcoesAparelho(deviceId, apenasConsulta){
   const d = buscarDevice(deviceId);

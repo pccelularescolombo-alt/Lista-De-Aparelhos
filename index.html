@@ -155,7 +155,7 @@
           <button class="btn-accent" id="btnAbrirCadastro" onclick="toggleFormCadastro()"><i class="fa-solid fa-plus"></i> Cadastrar aparelho</button>
           <div class="pill"><i class="fa-solid fa-store" style="color:var(--accent);"></i> <span id="nomeLojaAtualTabela">Minha loja</span></div>
           <button type="button" class="btn-ghost" id="btnCapturarTabela" onclick="capturarTabela()"><i class="fa-solid fa-camera"></i> Capturar tabela</button>
-          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelho" placeholder="Buscar por nome, IMEI, observação..." oninput="renderTabelaLojaAtual()" /></div>
+          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelho" placeholder="Buscar por nome, IMEI, observação..." oninput="renderTabelaLojaAtualDebounced()" /></div>
         </div>
         <div id="chipsCategoria" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div class="table-wrapper" id="wrapperTabelaLojaAtual">
@@ -168,7 +168,7 @@
     <div class="tab-content" id="tab-todasLojas">
       <div class="card">
         <div class="table-toolbar">
-          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelhoTodas" placeholder="Buscar por nome, IMEI, loja, observação..." oninput="renderTabelaTodasLojas()" /></div>
+          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelhoTodas" placeholder="Buscar por nome, IMEI, loja, observação..." oninput="renderTabelaTodasLojasDebounced()" /></div>
         </div>
         <div id="chipsCategoriaTodas" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
         <div class="table-wrapper">

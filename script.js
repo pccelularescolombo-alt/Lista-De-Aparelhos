@@ -792,7 +792,7 @@ function renderTransferenciasRecebidas(){
   badge.textContent = transferenciasRecebidas.length;
   badge.classList.remove('hidden');
   cont.innerHTML = transferenciasRecebidas.map(t=>`
-    <div class="card" style="margin-bottom:10px;padding:14px 16px;">
+    <div class="card-leve">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <strong>${escapeHtml(t.deviceSnapshot?.nome||'')}</strong> · IMEI ${escapeHtml(t.deviceSnapshot?.imei||'—')}<br/>
@@ -811,7 +811,7 @@ function renderTransferenciasEnviadas(){
   if (transferenciasEnviadas.length===0){ cont.innerHTML = '<p class="texto-soft">Nenhuma transferência enviada.</p>'; return; }
   const statusBadge = {pendente:'badge-warning',aprovada:'badge-success',recusada:'badge-muted',cancelada:'badge-muted'};
   cont.innerHTML = transferenciasEnviadas.map(t=>`
-    <div class="card" style="margin-bottom:10px;padding:14px 16px;">
+    <div class="card-leve">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <strong>${escapeHtml(t.deviceSnapshot?.nome||'')}</strong> · IMEI ${escapeHtml(t.deviceSnapshot?.imei||'—')}<br/>

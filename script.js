@@ -212,6 +212,7 @@ function mostrarAba(nome){
 }
 
 function toggleFormCadastro(){
+  if (!isMasterUser){ showToast('Apenas o login master pode cadastrar aparelhos.','warning'); return; }
   const card = document.getElementById('cardCadastroAparelho');
   const abrindo = card.classList.contains('hidden');
   card.classList.toggle('hidden');
@@ -411,7 +412,8 @@ function preencherSelectLojasDestino(selectId, excluirStoreId){
 
 document.getElementById('formAparelho').addEventListener('submit', async e=>{
   e.preventDefault();
-  const lojaAlvo = isMasterUser ? valor('selectLojaCadastro') : myStoreId;
+  if (!isMasterUser){ showToast('Apenas o login master pode cadastrar aparelhos.','error'); return; }
+  const lojaAlvo = valor('selectLojaCadastro');
   if (!lojaAlvo){ showToast('Selecione a loja de destino.','warning'); return; }
   const nome = valor('nome');
   if (!nome){ showToast('Informe o nome do aparelho.','warning'); return; }
@@ -595,22 +597,26 @@ const renderTabelaTodasLojasDebounced = debounce(renderTabelaTodasLojas, 200);
 function abrirAcoesAparelho(deviceId, apenasConsulta){
   const d = buscarDevice(deviceId);
   if (!d) return;
-  const podeEditar = !apenasConsulta && (isMasterUser || d.storeId === myStoreId);
+  const ehDonoOuMaster = isMasterUser || d.storeId === myStoreId;
+  const podeOperar = !apenasConsulta && ehDonoOuMaster;
+  const podeGerenciar = !apenasConsulta && isMasterUser;
 
   document.getElementById('acoesDeviceInfo').textContent = `${d.nome||''} · IMEI ${d.imei||'—'}`;
 
   let botoes = '';
-  if (podeEditar){
+  if (podeOperar){
     if (d.status === 'transfer_pendente'){
       botoes += `<button class="btn-ghost" onclick="cancelarTransferencia('${d.pendingTransferId}')"><i class="fa-solid fa-ban"></i> Cancelar transferência</button>`;
     } else {
       botoes += `<button class="btn-ghost" onclick="abrirVenda('${d.id}')"><i class="fa-solid fa-cart-shopping"></i> Vender</button>`;
       botoes += `<button class="btn-ghost" onclick="abrirTransferencia('${d.id}')"><i class="fa-solid fa-truck-fast"></i> Transferir</button>`;
-      botoes += `<button class="btn-ghost" onclick="abrirEditar('${d.id}')"><i class="fa-solid fa-pen-to-square"></i> Editar</button>`;
     }
   }
+  if (podeGerenciar && d.status !== 'transfer_pendente'){
+    botoes += `<button class="btn-ghost" onclick="abrirEditar('${d.id}')"><i class="fa-solid fa-pen-to-square"></i> Editar</button>`;
+  }
   botoes += `<button class="btn-ghost" onclick="copiarInfoAparelho('${d.id}')"><i class="fa-solid fa-copy"></i> Copiar informações</button>`;
-  if (podeEditar && d.status !== 'transfer_pendente'){
+  if (podeGerenciar && d.status !== 'transfer_pendente'){
     botoes += `<button class="btn-ghost" onclick="excluirAparelho('${d.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>`;
   }
 
@@ -642,7 +648,7 @@ async function registrarHistorico(visibleTo, tipo, deviceSnapshot, detalhe, extr
    ========================================================================= */
 function abrirVenda(deviceId){
   vendaDeviceId = deviceId;
-  ['vendaCliente','vendaCpfCnpj','vendaTelefone','vendaVendedor','vendaNumeroPedido','vendaNumeroCcb','vendaPlataforma'].forEach(id=>document.getElementById(id).value='');
+  ['vendaCliente','vendaCpfCnpj','vendaTelefone','vendaVendedor','vendaNumeroPedido','vendaNumeroCcb','vendaPlataforma','vendaValorEntrada','vendaQtdParcelas','vendaValorParcela'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('vendaTipo').value = 'loja';
   atualizarTipoVenda();
   abrirPainel('boxVenda');
@@ -652,6 +658,9 @@ function atualizarTipoVenda(){
   const ehBoleto = tipo === 'boleto';
   document.getElementById('wrapVendaPlataforma').classList.toggle('hidden', !ehBoleto);
   document.getElementById('wrapVendaCcb').classList.toggle('hidden', !ehBoleto);
+  document.getElementById('wrapVendaEntrada').classList.toggle('hidden', !ehBoleto);
+  document.getElementById('wrapVendaQtdParcelas').classList.toggle('hidden', !ehBoleto);
+  document.getElementById('wrapVendaValorParcela').classList.toggle('hidden', !ehBoleto);
 }
 async function confirmarVenda(){
   const d = buscarDevice(vendaDeviceId);
@@ -659,18 +668,19 @@ async function confirmarVenda(){
   const tipo = valor('vendaTipo');
   const ehBoleto = tipo === 'boleto';
   const cliente=valor('vendaCliente'), cpf=valor('vendaCpfCnpj'), tel=valor('vendaTelefone'), vendedor=valor('vendaVendedor'),
-        numeroPedido=valor('vendaNumeroPedido'), numeroCcb=valor('vendaNumeroCcb'), plataforma=valor('vendaPlataforma');
+        numeroPedido=valor('vendaNumeroPedido'), numeroCcb=valor('vendaNumeroCcb'), plataforma=valor('vendaPlataforma'),
+        valorEntrada=valor('vendaValorEntrada'), qtdParcelas=valor('vendaQtdParcelas'), valorParcela=valor('vendaValorParcela');
   if (!cliente||!cpf||!tel||!vendedor||!numeroPedido){ showToast('Preencha todos os campos obrigatórios.','warning'); return; }
-  if (ehBoleto && (!plataforma||!numeroCcb)){ showToast('Preencha a plataforma e o número da CCB.','warning'); return; }
+  if (ehBoleto && (!plataforma||!numeroCcb||!valorEntrada||!qtdParcelas||!valorParcela)){ showToast('Preencha plataforma, CCB, valor de entrada, quantidade de parcelas e valor da parcela.','warning'); return; }
   try{
     await db.collection('devices').doc(d.id).update({ status:'vendido', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     const nomeLoja = lojasMap[d.storeId]?.name || '';
     const produtoStr = formatarProdutoDetalhe(d);
     const dataCompra = formatarDataSomenteSP(new Date());
     const detalhe = ehBoleto
-      ? `PLATAFORMA: ${plataforma}\nCLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}\nN° CCB: ${numeroCcb}`
+      ? `PLATAFORMA: ${plataforma}\nCLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}\nN° CCB: ${numeroCcb}\nVALOR DE ENTRADA: ${valorEntrada}\nPARCELAS: ${qtdParcelas}x de ${valorParcela}`
       : `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}`;
-    await registrarHistorico([d.storeId], 'Venda', d, detalhe, { tipoVenda: tipo, plataforma, cliente, cpf, telefone: tel, vendedor, numeroPedido, numeroCcb });
+    await registrarHistorico([d.storeId], 'Venda', d, detalhe, { tipoVenda: tipo, plataforma, cliente, cpf, telefone: tel, vendedor, numeroPedido, numeroCcb, valorEntrada, qtdParcelas, valorParcela });
     fecharPainel();
     showToast('Venda registrada!','success');
     abrirBoxCopiarMensagem('Venda registrada', detalhe);
@@ -873,6 +883,7 @@ function renderTransferenciasEnviadas(){
    EDITAR / EXCLUIR
    ========================================================================= */
 function abrirEditar(deviceId){
+  if (!isMasterUser){ showToast('Apenas o login master pode editar aparelhos.','error'); return; }
   const d = buscarDevice(deviceId);
   if (!d) return;
   editarDeviceId = deviceId;
@@ -892,6 +903,7 @@ function abrirEditar(deviceId){
 }
 
 async function salvarEdicao(){
+  if (!isMasterUser){ showToast('Apenas o login master pode editar aparelhos.','error'); return; }
   const dados = {
     nome: valor('editarNome'), imei: valor('editarImei'),
     armazenamento: valorSelectOuManual('editarArmazenamento'), ram: valorSelectOuManual('editarRam'),
@@ -909,6 +921,7 @@ async function salvarEdicao(){
 }
 
 async function excluirAparelho(deviceId){
+  if (!isMasterUser){ showToast('Apenas o login master pode excluir aparelhos.','error'); return; }
   if (!confirm('Deseja excluir este aparelho da lista?')) return;
   const d = buscarDevice(deviceId);
   if (!d) return;

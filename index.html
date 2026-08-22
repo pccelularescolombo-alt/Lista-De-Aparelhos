@@ -152,7 +152,7 @@
       </div>
       <div class="card">
         <div class="table-toolbar">
-          <button class="btn-accent" id="btnAbrirCadastro" onclick="toggleFormCadastro()"><i class="fa-solid fa-plus"></i> Cadastrar aparelho</button>
+          <button class="btn-accent hidden" data-master-only id="btnAbrirCadastro" onclick="toggleFormCadastro()"><i class="fa-solid fa-plus"></i> Cadastrar aparelho</button>
           <div class="pill"><i class="fa-solid fa-store" style="color:var(--accent);"></i> <span id="nomeLojaAtualTabela">Minha loja</span></div>
           <button type="button" class="btn-ghost" id="btnCapturarTabela" onclick="capturarTabela()"><i class="fa-solid fa-camera"></i> Capturar tabela</button>
           <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscaAparelho" placeholder="Buscar por nome, IMEI, observação..." oninput="renderTabelaLojaAtualDebounced()" /></div>
@@ -265,6 +265,9 @@
     <div class="field"><label>Vendedor <span class="req">*</span></label><input id="vendaVendedor" type="text" /></div>
     <div class="field"><label>Número do pedido <span class="req">*</span></label><input id="vendaNumeroPedido" type="text" placeholder="Ex: 00123" /></div>
     <div class="field hidden" id="wrapVendaCcb"><label>Número da CCB <span class="req">*</span></label><input id="vendaNumeroCcb" type="text" /></div>
+    <div class="field hidden" id="wrapVendaEntrada"><label>Valor de entrada <span class="req">*</span></label><input id="vendaValorEntrada" type="text" placeholder="R$" /></div>
+    <div class="field hidden" id="wrapVendaQtdParcelas"><label>Quantidade de parcelas <span class="req">*</span></label><input id="vendaQtdParcelas" type="text" placeholder="Ex: 12" inputmode="numeric" /></div>
+    <div class="field hidden" id="wrapVendaValorParcela"><label>Valor da parcela <span class="req">*</span></label><input id="vendaValorParcela" type="text" placeholder="R$" /></div>
     <div class="painel-actions">
       <button class="btn-primary" onclick="confirmarVenda()"><i class="fa-solid fa-check"></i> Salvar venda</button>
       <button class="btn-ghost" onclick="fecharPainel()">Cancelar</button>

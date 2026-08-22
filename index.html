@@ -252,12 +252,19 @@
 
   <div class="painel-box" id="boxVenda" style="display:none;">
     <div class="painel-header"><h2><i class="fa-solid fa-cart-shopping"></i> Registrar venda</h2><button class="painel-close" onclick="fecharPainel()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="field"><label>Tipo de venda <span class="req">*</span></label>
+      <select id="vendaTipo" onchange="atualizarTipoVenda()">
+        <option value="loja">Na loja</option>
+        <option value="boleto">Boleto</option>
+      </select>
+    </div>
+    <div class="field hidden" id="wrapVendaPlataforma"><label>Plataforma <span class="req">*</span></label><input id="vendaPlataforma" type="text" placeholder="Ex: Bling, Mercado Pago…" /></div>
     <div class="field"><label>Cliente <span class="req">*</span></label><input id="vendaCliente" type="text" /></div>
     <div class="field"><label>CPF / CNPJ <span class="req">*</span></label><input id="vendaCpfCnpj" type="text" /></div>
     <div class="field"><label>Telefone <span class="req">*</span></label><input id="vendaTelefone" type="text" /></div>
     <div class="field"><label>Vendedor <span class="req">*</span></label><input id="vendaVendedor" type="text" /></div>
     <div class="field"><label>Número do pedido <span class="req">*</span></label><input id="vendaNumeroPedido" type="text" placeholder="Ex: 00123" /></div>
-    <div class="field"><label>Número da CCB</label><input id="vendaNumeroCcb" type="text" placeholder="Opcional" /></div>
+    <div class="field hidden" id="wrapVendaCcb"><label>Número da CCB <span class="req">*</span></label><input id="vendaNumeroCcb" type="text" /></div>
     <div class="painel-actions">
       <button class="btn-primary" onclick="confirmarVenda()"><i class="fa-solid fa-check"></i> Salvar venda</button>
       <button class="btn-ghost" onclick="fecharPainel()">Cancelar</button>
@@ -317,6 +324,17 @@
     <div class="field"><label>Observação</label><textarea id="editarObservacao"></textarea></div>
     <div class="painel-actions">
       <button class="btn-primary" onclick="salvarEdicao()"><i class="fa-solid fa-check"></i> Salvar alterações</button>
+      <button class="btn-ghost" onclick="fecharPainel()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="painel-box" id="boxConfirmarRecebimento" style="display:none;">
+    <div class="painel-header"><h2><i class="fa-solid fa-truck-ramp-box"></i> Confirmar recebimento</h2><button class="painel-close" onclick="fecharPainel()"><i class="fa-solid fa-xmark"></i></button></div>
+    <p class="texto-soft" id="confirmRecebDeviceInfo" style="font-style:normal;color:var(--text-muted);"></p>
+    <p class="texto-soft">Para confirmar o recebimento, digite o IMEI do aparelho que está sendo transferido. A transferência fica bloqueada até o IMEI ser confirmado corretamente.</p>
+    <div class="field"><label>IMEI do aparelho <span class="req">*</span></label><input id="confirmRecebImei" type="text" placeholder="Digite o IMEI para confirmar" autocomplete="off" /></div>
+    <div class="painel-actions">
+      <button class="btn-primary" onclick="confirmarRecebimentoPorImei()"><i class="fa-solid fa-check"></i> Confirmar recebimento</button>
       <button class="btn-ghost" onclick="fecharPainel()">Cancelar</button>
     </div>
   </div>

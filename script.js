@@ -30,6 +30,7 @@ let historicoCache = [];
 let transferenciasRecebidas = [];
 let transferenciasEnviadas = [];
 let vendaDeviceId = null, transferenciaDeviceId = null, editarDeviceId = null;
+let transferenciaConfirmarId = null;
 
 let unsubLojas = null, unsubDevices = null, unsubDevicesTodas = null, unsubUsuarios = null, unsubRecebidas = null, unsubEnviadas = null;
 
@@ -232,6 +233,12 @@ function fecharPainel(){
   document.getElementById('painelLateral').classList.remove('active');
 }
 document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharPainel(); });
+document.addEventListener('keydown', e=>{
+  if (e.key==='Enter' && e.target && e.target.id==='confirmRecebImei'){
+    e.preventDefault();
+    confirmarRecebimentoPorImei();
+  }
+});
 
 /* =========================================================================
    BOX CENTRAL DE COPIAR MENSAGEM (Vender / Transferir / Autorizar transferência)
@@ -635,22 +642,35 @@ async function registrarHistorico(visibleTo, tipo, deviceSnapshot, detalhe, extr
    ========================================================================= */
 function abrirVenda(deviceId){
   vendaDeviceId = deviceId;
-  ['vendaCliente','vendaCpfCnpj','vendaTelefone','vendaVendedor','vendaNumeroPedido','vendaNumeroCcb'].forEach(id=>document.getElementById(id).value='');
+  ['vendaCliente','vendaCpfCnpj','vendaTelefone','vendaVendedor','vendaNumeroPedido','vendaNumeroCcb','vendaPlataforma'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vendaTipo').value = 'loja';
+  atualizarTipoVenda();
   abrirPainel('boxVenda');
+}
+function atualizarTipoVenda(){
+  const tipo = valor('vendaTipo');
+  const ehBoleto = tipo === 'boleto';
+  document.getElementById('wrapVendaPlataforma').classList.toggle('hidden', !ehBoleto);
+  document.getElementById('wrapVendaCcb').classList.toggle('hidden', !ehBoleto);
 }
 async function confirmarVenda(){
   const d = buscarDevice(vendaDeviceId);
   if (!d) return;
+  const tipo = valor('vendaTipo');
+  const ehBoleto = tipo === 'boleto';
   const cliente=valor('vendaCliente'), cpf=valor('vendaCpfCnpj'), tel=valor('vendaTelefone'), vendedor=valor('vendaVendedor'),
-        numeroPedido=valor('vendaNumeroPedido'), numeroCcb=valor('vendaNumeroCcb');
+        numeroPedido=valor('vendaNumeroPedido'), numeroCcb=valor('vendaNumeroCcb'), plataforma=valor('vendaPlataforma');
   if (!cliente||!cpf||!tel||!vendedor||!numeroPedido){ showToast('Preencha todos os campos obrigatórios.','warning'); return; }
+  if (ehBoleto && (!plataforma||!numeroCcb)){ showToast('Preencha a plataforma e o número da CCB.','warning'); return; }
   try{
     await db.collection('devices').doc(d.id).update({ status:'vendido', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     const nomeLoja = lojasMap[d.storeId]?.name || '';
     const produtoStr = formatarProdutoDetalhe(d);
     const dataCompra = formatarDataSomenteSP(new Date());
-    const detalhe = `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}\nN° CCB: ${numeroCcb || '—'}`;
-    await registrarHistorico([d.storeId], 'Venda', d, detalhe, { cliente, cpf, telefone: tel, vendedor, numeroPedido, numeroCcb });
+    const detalhe = ehBoleto
+      ? `PLATAFORMA: ${plataforma}\nCLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}\nN° CCB: ${numeroCcb}`
+      : `CLIENTE: ${cliente}\nCPF/CNPJ: ${cpf}\nTELEFONE: ${tel}\nDATA DA COMPRA: ${dataCompra}\nLOJA: ${nomeLoja}\nPRODUTO: ${produtoStr}\nIMEI: ${d.imei||'—'}\nVENDEDOR: ${vendedor}\nN° PEDIDO BLING: ${numeroPedido}`;
+    await registrarHistorico([d.storeId], 'Venda', d, detalhe, { tipoVenda: tipo, plataforma, cliente, cpf, telefone: tel, vendedor, numeroPedido, numeroCcb });
     fecharPainel();
     showToast('Venda registrada!','success');
     abrirBoxCopiarMensagem('Venda registrada', detalhe);
@@ -718,13 +738,38 @@ async function cancelarTransferencia(transferId){
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
 
-async function aprovarTransferencia(transferId){
-  if (!confirm('Confirmar recebimento deste aparelho?')) return;
+function abrirConfirmacaoRecebimento(transferId){
+  const t = transferenciasRecebidas.find(x=>x.id===transferId);
+  if (!t) return;
+  transferenciaConfirmarId = transferId;
+  document.getElementById('confirmRecebDeviceInfo').textContent = `${t.deviceSnapshot?.nome||''} · De: ${t.originStoreName||''}`;
+  const campoImei = document.getElementById('confirmRecebImei');
+  campoImei.value = '';
+  abrirPainel('boxConfirmarRecebimento');
+  setTimeout(()=>campoImei.focus(), 50);
+}
+
+async function confirmarRecebimentoPorImei(){
+  const transferId = transferenciaConfirmarId;
+  if (!transferId) return;
+  const imeiDigitado = valor('confirmRecebImei');
+  if (!imeiDigitado){ showToast('Digite o IMEI do aparelho para confirmar.','warning'); return; }
   try{
     const tRef = db.collection('transfers').doc(transferId);
     const tSnap = await tRef.get();
     const t = tSnap.data();
     if (!t || t.status !== 'pendente'){ showToast('Esta transferência já foi respondida.','warning'); return; }
+
+    const imeiEsperado = String(t.deviceSnapshot?.imei||'').trim();
+    if (!imeiEsperado){
+      showToast('Este aparelho não possui IMEI cadastrado. Não é possível confirmar por IMEI.','error');
+      return;
+    }
+    if (imeiDigitado.trim() !== imeiEsperado){
+      showToast('IMEI não confere. Verifique o código e tente novamente.','error');
+      return;
+    }
+
     await db.collection('devices').doc(t.deviceId).update({
       storeId: t.destStoreId, status:'disponivel', pendingDestStoreId:null, pendingTransferId:null,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -733,7 +778,9 @@ async function aprovarTransferencia(transferId){
     const produtoStr = formatarProdutoDetalhe(t.deviceSnapshot||{});
     const detalhe = `ADICIONADO:\nTRANSFERÊNCIA ${formatarDataHoraSP(new Date())}\nLOJA ATUAL: ${t.originStoreName||''}\nLOJA DESTINO: ${t.destStoreName||''}\nPRODUTO: ${produtoStr}\nIMEI: ${t.deviceSnapshot?.imei||'—'}\nVENDEDOR: ${t.vendedor||''}\nENTREGADOR: ${t.entregador||''}`;
     await registrarHistorico([t.originStoreId, t.destStoreId], 'Transferência aprovada', t.deviceSnapshot, detalhe);
-    showToast('Transferência aprovada!','success');
+    transferenciaConfirmarId = null;
+    fecharPainel();
+    showToast('Recebimento confirmado! Transferência aprovada.','success');
     abrirBoxCopiarMensagem('Transferência autorizada', detalhe);
   }catch(err){ showToast('Erro: '+err.message,'error'); }
 }
@@ -799,7 +846,7 @@ function renderTransferenciasRecebidas(){
           <span class="texto-soft">De: ${escapeHtml(t.originStoreName)} · Vendedor: ${escapeHtml(t.vendedor)} · Entregador: ${escapeHtml(t.entregador)}</span>
         </div>
         <div class="actions" style="margin:0;">
-          <button class="btn-primary btn-icon" onclick="aprovarTransferencia('${t.id}')" title="Aprovar"><i class="fa-solid fa-check"></i></button>
+          <button class="btn-primary btn-icon" onclick="abrirConfirmacaoRecebimento('${t.id}')" title="Confirmar recebimento (requer IMEI)"><i class="fa-solid fa-check"></i></button>
           <button class="btn-danger btn-icon" onclick="recusarTransferencia('${t.id}')" title="Recusar"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>

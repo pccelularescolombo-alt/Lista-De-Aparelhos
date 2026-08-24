@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function userData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isMaster() { return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && userData().role == 'master'; }
+    function myStoreId() { return userData().storeId; }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isMaster());
+      allow create: if isSignedIn() && request.auth.uid == uid && request.resource.data.role == 'padrao';
+      allow update: if isMaster() || (isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == resource.data.role
+                    && (
+                      request.resource.data.storeId == resource.data.get('storeId', null)
+                      || (resource.data.get('storeId', null) == null
+                          && request.resource.data.storeId is string
+                          && request.resource.data.storeId.size() > 0)
+                    ));
+      allow delete: if isMaster();
+    }
+
+    match /stores/{storeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isMaster()
+                    || (isSignedIn() && myStoreId() == storeId
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+                        && request.resource.data.name is string
+                        && request.resource.data.name.size() > 0);
+      allow delete: if isMaster();
+    }
+
+    match /devices/{deviceId} {
+      allow read: if isSignedIn();
+
+      // Somente o master cadastra aparelhos (no "estoque"/loja escolhida por ele).
+      allow create: if isMaster();
+
+      // Master: pode alterar qualquer campo (inclui editar dados e cadastro).
+      // Loja de origem (dona do aparelho): só pode mexer nos campos de
+      // status/transferência — vender, solicitar transferência, cancelar
+      // a própria solicitação. Não pode editar dados nem excluir.
+      // Loja de destino (transferência pendente para ela): só pode
+      // confirmar o recebimento, movendo o aparelho para a própria loja
+      // e limpando os campos de pendência.
+      allow update: if isMaster()
+                    || (
+                      isSignedIn() && myStoreId() == resource.data.storeId
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status','pendingDestStoreId','pendingTransferId','updatedAt'])
+                      && request.resource.data.storeId == resource.data.storeId
+                    )
+                    || (
+                      isSignedIn() && myStoreId() == resource.data.pendingDestStoreId
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['storeId','status','pendingDestStoreId','pendingTransferId','updatedAt'])
+                      && request.resource.data.storeId == myStoreId()
+                    );
+
+      // Somente o master exclui aparelhos.
+      allow delete: if isMaster();
+    }
+
+    match /transfers/{transferId} {
+      allow read: if isSignedIn() && (isMaster() || myStoreId() == resource.data.originStoreId || myStoreId() == resource.data.destStoreId);
+      allow create: if isSignedIn() && (isMaster() || request.resource.data.originStoreId == myStoreId());
+      allow update: if isMaster() || myStoreId() == resource.data.destStoreId || myStoreId() == resource.data.originStoreId;
+      allow delete: if isMaster();
+    }
+
+    match /history/{historyId} {
+      allow read: if isSignedIn() && (isMaster() || myStoreId() in resource.data.visibleTo);
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if isMaster();
+    }
+  }
+}
